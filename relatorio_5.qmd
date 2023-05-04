@@ -94,6 +94,57 @@ Cox;
 (e) Indicação da melhor transformação analisada.
 
 
+```{r dispersao+ajuste}
+#| echo: false
+#| warning: false
+#| fig-height: 4
+#| fig-width: 7
+
+
+### Ajuste do Modelo + Gráfico ----
+dados1|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(
+    color = "#234B6E"
+    )+
+  labs(
+    title = "Figura 1: Modelo Ajustado entre o Volume e Altura",
+    y = 'Volume (m³)',
+    x = 'Altura (m)'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., ..p.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 19.2, label.y = 2, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 3)+
+  ggpubr::stat_regline_equation(
+      aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+          geom = "text", label.x = 19.2, label.y = 1.75, 
+      position = "identity", 
+      color="red",
+      size = 3, show.legend = F
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+  breaks = seq(0, 2.5, 0.5),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+    theme(legend.position = "none",
+          axis.line = element_line(size = 0.8, color = "#222222"))
+
+## Modelo Ajustado
+mFit1 <- lm(volume~height, data = dados1)
+
+```
 
 
 

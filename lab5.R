@@ -22,11 +22,11 @@ usethis::use_git()
 usethis::use_github()
 # _________________________________________________
 
-# Parte 1 ----
-## DADOS 1 ----
-### Importação ----
+# PARTE 1 ----
+## Dados 1 - Import ----
 dados1 <- datasets::trees
 
+### Arrumação ----
 dados1 <- dados1|>
   janitor::clean_names()
 
@@ -36,7 +36,7 @@ dados1 <- dados1|>
     volume = volume*0.02831685,
     girth = girth*0.3048
   )
-
+## Análises ----
 ### Medidas Resumo ----
 summarytools::st_options(lang = "pt")
 
@@ -100,12 +100,12 @@ dados1|>
     label.sep = "; ", geom = "text",
     color="red",
     method = "pearson",
-    label.x = 63, label.y = 70, show.legend = F,
+    label.x = 19.2, label.y = 2, show.legend = F,
     p.accuracy = 0.001, r.accuracy = 0.0001,
     size = 3)+
   ggpubr::stat_regline_equation(
       aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
-          geom = "text", label.x = 63, label.y = 60, 
+          geom = "text", label.x = 19.2, label.y = 1.75, 
       position = "identity", 
       color="red",
       size = 3, show.legend = F
@@ -113,9 +113,9 @@ dados1|>
   geom_smooth(
     method=lm, se=T, formula = "y ~ x", color = "tomato")+
   theme_minimal()+
-  scale_x_continuous(breaks = seq(60,90,5))+
+  scale_x_continuous(breaks = seq(19,27,1))+
   scale_y_continuous(
-    breaks = seq(0, 85, 20),
+  breaks = seq(0, 2.5, 0.5),
     labels = scales::number_format(
       big.mark = ".",
       decimal.mark = ","
@@ -126,23 +126,23 @@ dados1|>
   # ggpubr::ggpar(palette = "grey", font.x = "bold") #não funciona
   
   
-(mFit <- lm(volume~height, data = dados1))
+(mFit1 <- lm(volume~height, data = dados1))
   
 ### Resíduos ----
 #### Gráficos RBase ----
   par(mfrow = c(2, 2))
   
-  plot(mFit)
+  plot(mFit1)
   
   par(mfrow = c(1, 1))
   
   # _____________________________________________
 #### Gráficos GGplot2 ----
-  mFit_resid <- broom::augment(mFit)
-  dplyr::glimpse(mFit_resid)
+  mFit1_resid <- broom::augment(mFit)
+  dplyr::glimpse(mFit1_resid)
   
   # Gráfico de Resíduos contra Valor Médio
-  mFit_resid|>
+  mFit1_resid|>
     ggplot(aes(x = .fitted, y = .resid)) + 
     geom_point(color = "#234B6E") +
     geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
@@ -159,7 +159,7 @@ dados1|>
           axis.line = element_line(size = 0.8, color = "#222222"))
   
   ## Gráfico de normalidade dos resíduos
-  mFit_resid %>% 
+  mFit1_resid %>% 
     ggplot(aes(sample = .std.resid)) + 
     qqplotr::stat_qq_band(alpha = 0.3) + # Plota a banda de confiança
     qqplotr::stat_qq_point(color = "#234B6E") + # Plota os pontos
@@ -175,7 +175,7 @@ dados1|>
           axis.line = element_line(size = 0.8, color = "#222222"))
   
 #### Gráfico Homogeneidade de Variâncias (Locação-Escala) ----
-  mFit_resid %>% 
+  mFit1_resid %>% 
     ggplot(aes(x = .fitted, y = sqrt(abs(.std.resid)))) + 
     geom_point(color = "#234B6E") +
     # geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
@@ -198,6 +198,12 @@ performance::check_model(mFit,
 # __________________________________________________________________
   
 
-# Parte 2 ----
-## DADOS 2 ----
+# PARTE 2 ----
+## Dados 2 - Import ----
 dados2 <- read.csv2("Dados2.csv")
+
+### Arrumação ----
+dados2 <- dados2|>
+  janitor::clean_names()
+
+## Análises ----
