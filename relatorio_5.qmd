@@ -244,15 +244,14 @@ d1 + d2 + d3 +
   theme(
     legend.position = "none",
     plot.tag.position = c(0, 1),
-    plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4)
+    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4)
   )
 
 
 ```
 
 
-
-
+A Figura que trada da Homogeneidade de Variâncias (Locação-Escala) mostra que há um problema na variabilidade dos dados, ou seja, há uma mudança na variabilidade dos dados, caracterizando uma Heterocedasticidade dos dados.
 
 
 

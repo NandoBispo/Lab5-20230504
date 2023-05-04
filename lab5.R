@@ -53,7 +53,7 @@ dados1|>
     justify = "c",
     style = "rmarkdown",
     transpose = T
-  )
+  )|>
   kbl(
     caption = "Medidas Resumo dos dados",
     digits = 2,
@@ -64,7 +64,7 @@ dados1|>
     # col.names =
     #   c("Min", "Q1", "Med", "Média", "Q3", "Max", "D.Padrão", "CV")
   )|>
-  footnote(general = "Fonte: StatLib - Carnegie Mellon University") |>
+  footnote(general = "---") |>
   # kable_material(c(
   #   "striped", # listrado
   #   "hover", 
@@ -77,10 +77,11 @@ dados1|>
   )|>
   kable_material()
 
-
-
 ### Correlação ----
+  
 cor.test(dados1$volume, dados1$height)
+
+corrplot::corrplot(cor(dados1), method = "number", type = "lower")
 
 
 ### Ajuste do Modelo + Gráfico ----
@@ -128,7 +129,13 @@ dados1|>
   
 (mFit1 <- lm(volume~height, data = dados1))
   
+### Significância ----
+
+
+
+
 ###Ana.  Resíduos ----
+{
 #### Gráficos RBase ----
   par(mfrow = c(2, 2))
   
@@ -136,14 +143,15 @@ dados1|>
   
   par(mfrow = c(1, 1))
   
-  # _____________________________________________
-#### Gráficos GGplot2 ----
+# _____________________________________________
+  
+### Gráficos GGplot2 ----
   mFit1_resid <- broom::augment(mFit1)
   dplyr::glimpse(mFit1_resid)
   
   library(ggthemes)
   
-# Histograma dos resíduos padronizados + curva normal  
+##### Histograma dos resíduos padronizados + curva normal ----
   mFit1_resid|>
     ggplot2::ggplot(aes(x = .std.resid))+
     geom_histogram(aes(y = ..density..), fill = "skyblue", 
@@ -264,12 +272,101 @@ d1 + d2 + d3 +
     plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4)
   )
 
-# __________________________________________________________________
+###### Pacote Performance ----
 performance::check_model(mFit1, 
                          check = c("linearity", "qq", "homogeneity", "outliers"))
 # __________________________________________________________________
   
+}
+  
+#### Testes ----  
 
+res1 <- residuals(mFit1) # Resíduo Ordinário
+
+##### Teste de normalidade dos resíduos ----
+  #H0: normalidade
+  #H1: não normalidade
+
+# KS
+(t_ks <- ks.test(res1, "pnorm", mean(res1), sd(res1)))
+# pnorm = acumulada da normal, o "p" antes da distribuição indica ser a acumulada.
+
+# SW*
+(t_sw <- shapiro.test(res1))
+
+##### Teste de homoscedasticidade dos resíduos ----
+  #H0: resíduos homoscedásticos - Variância constante
+  #H1: resíduos heteroscedásticos - Variância NÃO constante
+
+# GQ
+(t_gq <- lmtest::gqtest(mFit1))
+
+# BP*
+(t_bp <- lmtest::bptest(mFit1, studentize = F))
+
+lmtest::bptest(mFit1, studentize = T) # Teste
+
+# PARK
+
+summary(lm(res1^2 ~ dados1$height))
+
+# Teste deF para linearidade
+
+
+# Teste de correlação serial lag 1 (Independência dos erros)
+  #H0: correlacionados - existe correlação serial
+  #H1: não correlacionados - não existe correlação serial ///ficou confuso no vídeo as hipoteses///
+
+# DW
+(t_dw <- lmtest::dwtest(mFit1))
+
+
+
+
+
+
+
+
+resultados <- rbind(
+  t_ks$statistic,
+  t_sw$statistic,
+  t_gq$statistic,
+  t_bp$statistic,
+  t_dw$statistic)
+
+aux <- rbind(
+  t_ks$p_value,
+  t_sw$p_value,
+  t_gq$p_value,
+  t_bp$p_value,
+  t_dw$p_value)
+
+resultados <- cbind(resultados, aux)
+
+rownames(resultados) <- c("Kolmogorov-Smirnov", "Shapiro-Wilks", "Goldfeld-Quandt", "Breush-Pagan", "Durbin-Watson")
+
+colnames(resultados) <- c("Estatística teste", "p-valor")
+
+resultados|>
+  kbl(
+    caption = "Testes de Diagnósticos dos Resíduos",
+    digits = 5,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", row.names = T, booktabs = T
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = T
+  )|>
+  # footnote(
+  #   general = "Teste realizado com 5% de significância",
+  #   general_title = "Nota:",
+  #   footnote_as_chunk = T
+  # )|>
+  kable_material()
+  
 # PARTE 2 ----
 ## Dados 2 - Import ----
 dados2 <- read.csv2("Dados2.csv")
