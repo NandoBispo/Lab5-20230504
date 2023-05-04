@@ -128,7 +128,7 @@ dados1|>
   
 (mFit1 <- lm(volume~height, data = dados1))
   
-### Resíduos ----
+###Ana.  Resíduos ----
 #### Gráficos RBase ----
   par(mfrow = c(2, 2))
   
@@ -138,62 +138,134 @@ dados1|>
   
   # _____________________________________________
 #### Gráficos GGplot2 ----
-  mFit1_resid <- broom::augment(mFit)
+  mFit1_resid <- broom::augment(mFit1)
   dplyr::glimpse(mFit1_resid)
   
-  # Gráfico de Resíduos contra Valor Médio
+  library(ggthemes)
+  
+# Histograma dos resíduos padronizados + curva normal  
   mFit1_resid|>
-    ggplot(aes(x = .fitted, y = .resid)) + 
-    geom_point(color = "#234B6E") +
-    geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
-    geom_smooth(
-      se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
+    ggplot2::ggplot(aes(x = .std.resid))+
+    geom_histogram(aes(y = ..density..), fill = "skyblue", 
+                   color = "blue", binwidth = 0.3, alpha = 0.5)+
+    geom_density(fill = "red", alpha = 0.2)+
+    stat_function(fun = dnorm, 
+                  args = (
+                    list(
+                      mean = mean(mFit1_resid$.std.resid), 
+                      sd = sd(mFit1_resid$.std.resid))), 
+                  geom = "polygon", fill = "blue", alpha = 0.5,
+                  color = "black", size = 0.5)+
     labs(
-      x = "Valores Médios Ajustados",
-      y = "Resíduos Ordinários",
-      title = "Gráfico de Resíduos vs. Valores Ajustados"
+      x = "Resíduos Padronizados",
+      y = "Densidade",
+      title = "Histograma dos Resíduos Padronizados"
     )+
-    # scale_x_continuous(breaks = seq(0,30,5))+
-    theme_minimal(base_size = 7.5)+
+    scale_x_continuous(breaks = seq(-3, 3, 1))+
+    scale_y_continuous(
+      # labels = scales::percent
+      labels = scales::number_format(
+        big.mark = ".",
+        decimal.mark = ","
+      )
+      )+
+    # theme_minimal()+
     theme(legend.position = "none",
           axis.line = element_line(size = 0.8, color = "#222222"))
+    ggthemes::theme_economist()
   
-  ## Gráfico de normalidade dos resíduos
-  mFit1_resid %>% 
-    ggplot(aes(sample = .std.resid)) + 
-    qqplotr::stat_qq_band(alpha = 0.3) + # Plota a banda de confiança
-    qqplotr::stat_qq_point(color = "#234B6E") + # Plota os pontos
-    qqplotr::stat_qq_line(linetype = 2, size = 0.2) + # Plota a reta
-    labs(
-      x = "Quantil Teórico",
-      y = "Quantil Amostral",
-      title = "Gráfico quantil-quantil normal"
-    )+
-    # scale_x_continuous(breaks = seq(-3,3,1))+
-    theme_minimal(base_size = 7.5)+
-    theme(legend.position = "none",
-          axis.line = element_line(size = 0.8, color = "#222222"))
+##### Gráfico de Resíduos contra Valor Médio ----
+d1 <- mFit1_resid|>
+  ggplot(aes(x = .fitted, y = .resid)) + 
+  geom_point(color = "#234B6E") +
+  geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
+  geom_smooth(
+    se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
+  labs(
+    x = "Valores Médios Ajustados",
+    y = "Resíduos Ordinários",
+    title = "Gráfico de Resíduos vs. Valores Ajustados"
+  )+
+  # scale_x_continuous(breaks = seq(0,30,5))+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "bold"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.8, color = "#222222"))
   
-#### Gráfico Homogeneidade de Variâncias (Locação-Escala) ----
-  mFit1_resid %>% 
-    ggplot(aes(x = .fitted, y = sqrt(abs(.std.resid)))) + 
-    geom_point(color = "#234B6E") +
-    # geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
-    geom_smooth(
-      se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
-    # ylab("$\\sqrt(Resíduos Padronizados)$")+
-    # ggtitle("Teste")+
-    labs(
-      x = "Valores Ajustados",
-      y = "√|Resíduos Padronizados|",
-      title = "Homogeneidade de Variâncias (Locação-Escala)"
-    )+
-    theme_minimal(base_size = 7.5)+
-    theme(legend.position = "none",
-          axis.line = element_line(size = 0.8, color = "#222222"))
+##### Gráfico de normalidade dos resíduos ----
+d2 <- mFit1_resid %>% 
+  ggplot(aes(sample = .std.resid)) + 
+  qqplotr::stat_qq_band(alpha = 0.3) + # Plota a banda de confiança
+  qqplotr::stat_qq_point(color = "#234B6E") + # Plota os pontos
+  qqplotr::stat_qq_line(linetype = 2, size = 0.2) + # Plota a reta
+  labs(
+    x = "Quantil Teórico",
+    y = "Quantil Amostral",
+    title = "Gráfico quantil-quantil normal"
+  )+
+  # scale_x_continuous(breaks = seq(-3,3,1))+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "bold"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.8, color = "#222222"))
   
+##### Gráfico Homogeneidade de Variâncias (Locação-Escala) ----
+d3 <- mFit1_resid %>% 
+  ggplot(aes(x = .fitted, y = sqrt(abs(.std.resid)))) + 
+  geom_point(color = "#234B6E") +
+  # geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
+  geom_smooth(
+    se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
+  # ylab("$\\sqrt(Resíduos Padronizados)$")+
+  # ggtitle("Teste")+
+  labs(
+    x = "Valores Ajustados",
+    y = "√|Resíduos Padronizados|",
+    title = "Homogeneidade de Variâncias (Locação-Escala)")+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "bold"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.8, color = "#222222"))
+  
+    
+d1 + d2 + d3 + 
+  plot_layout(ncol = 2) +
+  plot_annotation(
+    title = "Figura 5: Análise de resíduos do modelo ajustado",
+    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+    tag_sep = ".", tag_suffix = ":") &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4)
+  )
+
 # __________________________________________________________________
-performance::check_model(mFit, 
+performance::check_model(mFit1, 
                          check = c("linearity", "qq", "homogeneity", "outliers"))
 # __________________________________________________________________
   
