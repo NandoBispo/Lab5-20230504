@@ -1,0 +1,101 @@
+---
+title: "LABORATÓRIO 5: Regressão Linear"
+author: "Fernado Bispo, Jeff Caponero"
+format:
+    pdf:
+      toc: true
+      toc-title: Sumário
+      colorlinks: true
+      documentclass: report
+      papersize: letter
+      number-sections: false
+      geometry:
+        - top=30mm
+        - left=30mm
+        - right=20mm
+        - bottom=20mm
+        - heightrounded
+      fig-pos: "H"
+      fig-align: center
+      lang: pt-BR
+      # fontfamily: libertinus
+      fontsize: 12pt
+      include-in-header:
+      - text: |
+          \usepackage{caption}
+          \usepackage{fontspec}
+          \usepackage{xcolor}
+          \usepackage{indentfirst}
+          \captionsetup[table]{name=Tabela}
+---
+
+```{r pacotes}
+#| echo: false
+#| warning: false
+
+
+# PACOTES ----
+
+if (!require(pacman)) install.packages("pacman")
+
+pacman::p_load(tidyverse,  janitor, stargazer,  sjmisc, summarytools,
+               kableExtra, moments, ggpubr, formattable, gridExtra, 
+               glue, corrplot, sessioninfo, readxl, writexl, ggthemes,
+               patchwork,  plotly, lmtest, olsrr, gglm, ggplot2,
+               tidymodels, GGally, skimr, performance)
+
+``` 
+
+# Introdução
+
+O laboratório desta semana está subdividido em duas partes com análises de dois conjuntos de dados distintos que visa a continuidade da aplicação das técnicas de Regressão Linear Simples com a aplicabilidade das técnicas de análise de resíduos e transformação de variáveis inclusive.
+Para melhor desenvolvimento do processo de analise, este relatório foi dividido em duas partes contendo as análises de cada um dos conjuntos de dados e contando com suas respectivas apresentações sobre o contexto a ser analisado.
+
+
+# Parte 1: Regressão Linear Simples - Diagnóstico do modelo
+
+```{r dados1}
+#| echo: false
+#| warning: false
+
+## DADOS 1 ----
+
+dados1 <- datasets::trees
+
+dados1 <- dados1|>
+  janitor::clean_names()
+
+## Conversão de unidades
+dados1 <- dados1|>
+  mutate(
+    height = height*0.3048,
+    volume = volume*0.02831685,
+    girth = girth*0.3048
+  )
+```
+
+
+
+## Metodologia
+
+O conjunto de dados *trees*, disponível no pacote *datasets*, contém informações de 31 cerejeiras (*Black cherry*) da Floresta Nacional de Allegheny, relativas a três características:
+
+- Volume de madeira útil (em metros cúbicos (m³)); 
+- Altura (em metros (m));
+- Circunferência (em metros(m)) a 1,37 de altura.
+
+Para esta atividade **serão considerados apenas as informações referentes ao volume e altura das árvores**. Com base nestes dados se desenvolverá:
+
+(a) Ajuste um modelo linear simples para volume como função da altura da árvore;
+(b) Avalação gráfica dos resíduos Jacknife para diagnóstico do modelo ajustado;
+(c) Transformações das característricas;
+(d) Avaliação da transformação mais apropriada dentro da família proposta por Box e
+Cox;
+(e) Indicação da melhor transformação analisada.
+
+
+
+
+
+# Parte 2: Regressão Linear Múltipla - Estimação pontual
+
