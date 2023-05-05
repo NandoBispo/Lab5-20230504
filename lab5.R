@@ -109,7 +109,7 @@ dados1|>
           geom = "text", label.x = 19.2, label.y = 1.75, 
       position = "identity", 
       color="red",
-      size = 3, show.legend = F
+      size = 3.5, show.legend = F
   )+
   geom_smooth(
     method=lm, se=T, formula = "y ~ x", color = "tomato")+
@@ -130,6 +130,118 @@ dados1|>
 (mFit1 <- lm(volume~height, data = dados1))
   
 ### Significância ----
+
+# Através da ANOVA é possível avaliar a significância do modelo
+  # H0: Beta_1 = 0
+  # H1: Beta1 =/ 0
+
+anova(mFit1)
+
+# fit_anova <- anova(mLstat)
+# fit_sumario <- summary(mLstat)
+# ic_parametros <- confint(mLstat)
+
+# ic_parametros <- confint(mLstat)
+
+ic_parametros[1,1]
+
+resultados <- cbind(anova(mFit1))
+
+rownames(resultados) <- c("Regressão", "Resíduos")
+
+resultados %>% tibble::as_tibble()
+
+resultados|>
+  kbl(
+    caption = "Análise de Variância (ANOVA) e Intervalos de Confiança para os parâmetros estimados no MRLS.",
+    format.args=list(big.mark=".", decimal.mark=","),
+    digits = 3, align = "c", row.names = T, booktabs = T,
+    escape = F,
+    col.names = c("GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = T
+  )|>
+  # add_header_above(c(" " = 1, "ANOVA" = 5, "Intervalos de Confiança" = 2))|>
+  kable_material()
+
+# fit_sumario[["coefficients"]] %>% tibble::as_tibble() %>% 
+# teste %>% tibble::as_tibble() %>% 
+#   kbl(
+#     caption = "Sumarização do modelo ajustado.",
+#     digits = 4,
+#     format.args=list(big.mark=".", decimal.mark=","),
+#     align = "c", 
+#     row.names = T,
+#     col.names =
+#       c("Estimativa", "Erro Padrão", "Estatística t", "p-valor")
+#   ) %>% 
+#   footnote(
+#     number = c("Linha 1: Dados referentes a β0", "Linha 2: Dados referentes a β1"),
+#     number_title = "Legenda:",
+#     footnote_as_chunk = F
+#   )|>
+#   kable_styling(
+#     full_width = F, position = 'center', 
+#     latex_options = c("striped", "HOLD_position", "repeat_header"))|>
+#   column_spec(1, bold = F)|>
+#   kable_material()
+
+fit_anova %>%
+  kbl(
+    caption = "Resultados da ANOVA.",
+    digits = 4,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = F,
+    col.names =
+      c("GL", "SQ", "QM", "Estatística", "p-valor")
+  ) %>%
+  footnote(
+    number = c(
+      "Linha 1: Dados referentes a β0", 
+      "Linha 2: Dados referentes a β1",
+      "GL: Graus de Liberdade", 
+      "SQ: Soma de Quadrados", 
+      "QM: Quadrado Médio", 
+      "Estatística: F-Snedecor"
+    ),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = F
+  )|>
+  kable_material()
+
+ic_parametros %>% 
+  kbl(
+    caption = "Intervalo de Confiança.",
+    digits = 4,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = F,
+    col.names =
+      c("α/2 = 2,5%", "1-α/2 = 97,5%")
+  ) %>%
+  footnote(
+    number = c("Linha 1: Dados referentes a β0", "Linha 2: Dados referentes a β1"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = F
+  )|>
+  kable_material()
 
 
 
@@ -366,7 +478,245 @@ resultados|>
   #   footnote_as_chunk = T
   # )|>
   kable_material()
-  
+
+
+## Transformações ----
+
+t1 <- dados1|>
+  mutate(volume = sqrt(volume))
+
+t2 <- dados1|>
+  mutate(volume = log(volume))
+
+t3 <- dados1|>
+  mutate(volume = volume^2)
+
+### Medidas Resumo ----
+t1 |>
+  rename(
+    "Altura" = height,
+    "Volume" = volume,
+    "Circunferência" = girth
+  )|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+  kbl(
+    caption = "Medidas Resumo dos dados de T1",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = T, 
+    booktabs = T
+  )|>
+  footnote(general = "---") |>
+  kable_styling(
+    full_width = F,
+    position = 'center', 
+    latex_options = c("striped", "HOLD_position", "scale_down")
+  )|>
+  kable_material()
+
+t2 |>
+  rename(
+    "Altura" = height,
+    "Volume" = volume,
+    "Circunferência" = girth
+  )|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+  kbl(
+    caption = "Medidas Resumo dos dados de T2",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = T, 
+    booktabs = T
+  )|>
+  footnote(general = "---") |>
+  kable_styling(
+    full_width = F,
+    position = 'center', 
+    latex_options = c("striped", "HOLD_position", "scale_down")
+  )|>
+  kable_material()
+
+t3 |>
+  rename(
+    "Altura" = height,
+    "Volume" = volume,
+    "Circunferência" = girth
+  )|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+  kbl(
+    caption = "Medidas Resumo dos dados de T3",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = T, 
+    booktabs = T
+  )|>
+  footnote(general = "---") |>
+  kable_styling(
+    full_width = F,
+    position = 'center', 
+    latex_options = c("striped", "HOLD_position", "scale_down")
+  )|>
+  kable_material()
+
+
+### Ajuste dos modelos ----
+#### Dispersão ----
+t1|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  labs(
+    title = "Modelo Ajustado entre o Volume e Altura",
+    y = 'raiz(Volume (m³))',
+    x = 'Altura (m)'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., ..p.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 19.2, label.y = 1.375, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 3)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 19.2, label.y = 1.25, 
+    position = "identity", 
+    color="red",
+    size = 3, show.legend = F
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    breaks = seq(0, 1.5, 0.25),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+t2|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  labs(
+    title = "Modelo Ajustado entre o Volume e Altura",
+    y = 'log(Volume (m³))',
+    x = 'Altura (m)'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., ..p.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 19.2, label.y = 0.7, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 3)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 19.2, label.y = 0.5, 
+    position = "identity", 
+    color="red",
+    size = 3, show.legend = F
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    breaks = seq(-1.3, 0.8, 0.3),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+t3|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  labs(
+    title = "Modelo Ajustado entre o Volume e Altura",
+    y = '(Volume (m³))²',
+    x = 'Altura (m)'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., ..p.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 19.2, label.y = 4.5, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 3.5)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 19.2, label.y = 4, 
+    position = "identity", 
+    color="red",
+    size = 3.5, show.legend = F
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    breaks = seq(-0.5, 5, 0.75),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+### Modelos Ajustados ----
+(mFitT1 <- lm(volume~height, data = t1))
+(mFitT2 <- lm(volume~height, data = t2))
+(mFitT3 <- lm(volume~height, data = t3))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # PARTE 2 ----
 ## Dados 2 - Import ----
 dados2 <- read.csv2("Dados2.csv")

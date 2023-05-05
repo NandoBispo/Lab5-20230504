@@ -94,6 +94,13 @@ Cox;
 (e) Indicação da melhor transformação analisada.
 
 
+
+## Resultados
+
+
+
+### Ajuste do Modelo
+
 ```{r dispersao+ajuste}
 #| echo: false
 #| warning: false
@@ -120,7 +127,7 @@ dados1|>
     method = "pearson",
     label.x = 19.2, label.y = 2, show.legend = F,
     p.accuracy = 0.001, r.accuracy = 0.0001,
-    size = 3)+
+    size = 3.5)+
   ggpubr::stat_regline_equation(
       aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
           geom = "text", label.x = 19.2, label.y = 1.75, 
@@ -147,7 +154,82 @@ mFit1 <- lm(volume~height, data = dados1)
 ```
 
 
+### Significância do Modelo
 
+Após o ajuste do modelo existe a necessidade de se avaliar a significância do mesmo, o teste de hipótese para tal situação será realizado, contendo as seguintes hipóteses:
+
+$$H_0: \hat{\beta_1} = 0$$
+$$H_1: \hat{\beta_1} \neq 0.$$
+As Tabelas 4 e 5 trazem os principais resultados da tabela ANOVA e do Intervalo de Confiança para os parâmetros, possibilitando assim inferir sobre o modelo ajustado.
+
+
+```{r}
+#| echo: false
+#| warning: false
+
+resultados <- cbind(anova(mFit1))
+rownames(resultados) <- c("Regressão", "Resíduos")
+
+resultados|>
+  kbl(
+    caption = "Análise de Variância (ANOVA)",
+    format.args=list(big.mark=".", decimal.mark=","),
+    digits = 3, align = "c", row.names = T, 
+    booktabs = T, escape = F,
+    col.names = c("GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = T
+  )|>
+    footnote(
+    number = c("GL: Graus de Liberdade"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
+  )|>
+  kable_material()
+
+
+resultados <- cbind(confint(mFit1))
+rownames(resultados) <- c("Beta 0", "Beta 1")
+
+resultados|>
+  kbl(
+    caption = "Intervalos de Confiança para os parâmetros estimados no MRLS.",
+    format.args=list(big.mark=".", decimal.mark=","),
+    digits = 3, align = "c", row.names = T, booktabs = T,
+    escape = F,
+    col.names = c("LI", "LS")
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = T
+  )|>
+    footnote(
+    symbol = "Nível de Significância de 5%.",
+    symbol_title = "",
+    footnote_as_chunk = T
+  )|>
+    footnote(
+    number = c(
+      "LI: Limite Inferior (alpha = 2,5%)", 
+      "LS: Limite Superior (alpha = 97,5%)"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
+  )|>
+  kable_material()
+```
+
+Com base na Tabela 1, avaliando o p-valor é possível afirmar que o modelo é significante rejeitando assim $H_0$ que tem como pressuposto $\hat{\beta_1} = 0$.
+
+Através dos Intervalos de Confiança calculados é possível afirmar **com 95% de confiança é possível afirmar que o verdadeiro valor de $\beta_0$ está entre `r glue::glue('({scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[1,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')` e que o verdadeiro valor de $\beta_1$ está entre `r glue::glue('({scales::number(confint(mFit1)[2,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[2,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')`**.
+
+
+### Análise de Resíduos
 
 ```{r fig5:analise_residuos}
 #| echo: false
