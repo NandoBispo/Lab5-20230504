@@ -511,6 +511,39 @@ t2 <- dados1|>
 t3 <- dados1|>
   mutate(volume = volume^2)
 
+resultados <- cbind(dados1$volume, t1$volume, t2$volume, t3$volume)
+
+colnames(resultados) <- c("1. Volume", "2. √Volume", "3. log(Volume)", "4. Volume²")
+
+resultados |>
+  # rename(
+  #   "Altura" = height,
+  #   "Volume" = volume,
+  #   "Circunferência" = girth
+  # )|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+  kbl(
+    caption = "Medidas Resumo dos dados",
+    digits = 3,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = T, 
+    booktabs = T
+  )|>
+  # footnote(general = "---") |>
+  kable_styling(
+    full_width = F,
+    position = 'center', 
+    latex_options = c("striped", "HOLD_position", "scale_down")
+  )|>
+  kable_material()
+
+
 ### Medidas Resumo ----
 t1 |>
   rename(
