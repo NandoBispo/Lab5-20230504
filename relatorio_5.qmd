@@ -78,7 +78,7 @@ dados1 <- dados1|>
 
 ## Metodologia
 
-O conjunto de dados *trees*, disponível no pacote *datasets*, contém informações de 31 cerejeiras (*Black cherry*) da Floresta Nacional de Allegheny, relativas a três características:
+O conjunto de dados *trees*, disponível no pacote *datasets*, contém informações de 31 cerejeiras (*Black cherry*) da Floresta Nacional de Allegheny, relativas a três características numéricas contínuas:
 
 - Volume de madeira útil (em metros cúbicos (m³)); 
 - Altura (em metros (m));
@@ -94,14 +94,13 @@ Cox;
 (e) Indicação da melhor transformação analisada.
 
 
-
 ## Resultados
 
 
 
 ### Ajuste do Modelo
 
-```{r dispersao+ajuste}
+```{r fig1:dispersao+ajuste}
 #| echo: false
 #| warning: false
 #| fig-height: 4
@@ -120,7 +119,7 @@ dados1|>
     x = 'Altura (m)'
   )+
   ggpubr::stat_cor(
-    aes(label = paste(..r.label.., ..rr.label.., ..p.label.., sep = "~`; `~")),
+    aes(label = paste(..r.label.., ..rr.label.., sep = "~`; `~")),
     cor.coef.name = c("R"),
     label.sep = "; ", geom = "text",
     color="red",
@@ -154,6 +153,47 @@ mFit1 <- lm(volume~height, data = dados1)
 ```
 
 
+Com base na Figura 1 é possível sugerir uma relação positiva entre as variáveis **Volume** e **Altura**, fato confirmado pelo Coeficiente de Correlação de Pearson (**R**) que após o teste de hipótese para avaliar a significância da correlação, demonstrou possuir correlação não nula. A Tabela 1 traz os resultados do teste de hipóteses para correlação e o Intervalo de Confiança para o verdadeiro valor da correlação, podendo concluir, com base no p-valor menor que o nível de significância (**$\alpha = 5\%$**), que a hipótese nula ($H_0$) foi rejeitada, assumindo-se a hipótese alternativa ($H_1$) que afirma que $\rho \neq 0$.
+
+O Coeficiente de Determinação ($R^2$) apresenta um valor baixo, podendo afirmar que apenas aproximadamente 36% da variabilidade dos dados está sendo explicada pelo modelo de regressão calculado.
+
+```{r tab1:teste_correlacao}
+#| echo: false
+#| warning: false
+
+
+cortest1 <- cor.test(dados1$volume, dados1$height)
+
+resultados <- cbind(cortest1$statistic, cortest1$p.value)
+aux <- rbind(cortest1$conf.int[1:2])
+
+resultados <- cbind(resultados, aux)
+
+rownames(resultados) <- "Altura" 
+colnames(resultados) <- c("t", "p-valor", "LI", "LS")
+
+resultados|>
+  kbl(
+    caption = "Teste de Hipótese para Correlação entre Volume e Altura",
+    digits = 5,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", row.names = T, booktabs = T
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = T
+  )|>
+  footnote(
+    general = "Teste realizado com 5% de significância",
+    general_title = "Nota:",
+    footnote_as_chunk = T
+  )|>
+  kable_material()
+```
+
+
 ### Significância do Modelo
 
 Após o ajuste do modelo existe a necessidade de se avaliar a significância do mesmo, o teste de hipótese para tal situação será realizado, contendo as seguintes hipóteses:
@@ -167,10 +207,23 @@ As Tabelas 4 e 5 trazem os principais resultados da tabela ANOVA e do Intervalo 
 #| echo: false
 #| warning: false
 
-resultados <- cbind(anova(mFit1))
-rownames(resultados) <- c("Regressão", "Resíduos")
+fit_anova <- anova(mFit1)|>
+  as.data.frame()
 
-resultados|>
+fit_anova <- fit_anova|>
+  mutate(
+    `F value` = 
+      scales::number(`F value`, accuracy = 0.0001, 
+                     big.mark = ".", decimal.mark = ","),
+    `Pr(>F)` = 
+      scales::number(`Pr(>F)`, accuracy = 0.0001, 
+                     big.mark = ".", decimal.mark = ","))
+
+fit_anova[is.na(fit_anova)] <- ""
+
+rownames(fit_anova) <- c("Regressão", "Resíduos")
+
+fit_anova|>
   kbl(
     caption = "Análise de Variância (ANOVA)",
     format.args=list(big.mark=".", decimal.mark=","),
@@ -226,7 +279,7 @@ resultados|>
 
 Com base na Tabela 1, avaliando o p-valor é possível afirmar que o modelo é significante rejeitando assim $H_0$ que tem como pressuposto $\hat{\beta_1} = 0$.
 
-Através dos Intervalos de Confiança calculados é possível afirmar **com 95% de confiança é possível afirmar que o verdadeiro valor de $\beta_0$ está entre `r glue::glue('({scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[1,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')` e que o verdadeiro valor de $\beta_1$ está entre `r glue::glue('({scales::number(confint(mFit1)[2,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[2,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')`**.
+Através dos Intervalos de Confiança calculados é possível afirmar **com 95% de confiança que o verdadeiro valor de $\beta_0$ está entre `r glue::glue('({scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[1,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')` e que o verdadeiro valor de $\beta_1$ está entre `r glue::glue('({scales::number(confint(mFit1)[2,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[2,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')`**.
 
 
 ### Análise de Resíduos
@@ -320,7 +373,7 @@ d3 <- mFit1_resid %>%
 d1 + d2 + d3 + 
   plot_layout(ncol = 2) +
   plot_annotation(
-  title = "Figura 5: Análise de resíduos do modelo ajustado",
+  title = "Figura 2: Análise de resíduos do modelo ajustado",
   tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
   tag_sep = ".", tag_suffix = ":") &
   theme(
@@ -333,7 +386,124 @@ d1 + d2 + d3 +
 ```
 
 
-A Figura que trada da Homogeneidade de Variâncias (Locação-Escala) mostra que há um problema na variabilidade dos dados, ou seja, há uma mudança na variabilidade dos dados, caracterizando uma Heterocedasticidade dos dados.
+
+A Figura 2 Sub.Fig A apresenta um comportamento assimétrico dos resíduos, podendo constatar uma pequena variabilidade inicial e um aumento desta à medida que os valores ajustados aumentam, caracterizando uma heterocedasticidade. A Sub.Fig C, que trada da Homogeneidade de Variâncias (Locação-Escala) mostra que há um problema na variabilidade dos dados, corrobora com a interpretação feita na análise da Sub.Fig. A, de que há uma mudança na variabilidade dos dados, caracterizando Heterocedasticidade dos dados.
+A Sub.Fig. B que traz o gráfico para avaliação da normalidade dos dados, mostra que apesar dos dados não estarem precisamente sobre a reta de referência, os mesmos estão contidos na região pertencente ao Intervalo de Confiança - IC, podendo assumir que há normalidade, contudo tal avaliação será confirmada após os Testes de Diagnóstico.
+
+
+
+### Testes de Diagnósticos do Modelo
+
+
+
+
+
+### Transformações dos Dados
+
+
+```{r transformacoes}
+#| echo: false
+#| warning: false
+
+
+## Transformações ----
+
+t1 <- dados1|>
+  mutate(volume = sqrt(volume))
+
+t2 <- dados1|>
+  mutate(volume = log(volume))
+
+t3 <- dados1|>
+  mutate(volume = volume^2)
+
+### Medidas Resumo ----
+t1 |>
+  rename(
+    "Altura" = height,
+    "Volume" = volume,
+    "Circunferência" = girth
+  )|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+  kbl(
+    caption = "Medidas Resumo dos dados de T1",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = T, 
+    booktabs = T
+  )|>
+  footnote(general = "---") |>
+  kable_styling(
+    full_width = F,
+    position = 'center', 
+    latex_options = c("striped", "HOLD_position", "scale_down")
+  )|>
+  kable_material()
+
+t2 |>
+  rename(
+    "Altura" = height,
+    "Volume" = volume,
+    "Circunferência" = girth
+  )|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+  kbl(
+    caption = "Medidas Resumo dos dados de T2",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = T, 
+    booktabs = T
+  )|>
+  footnote(general = "---") |>
+  kable_styling(
+    full_width = F,
+    position = 'center', 
+    latex_options = c("striped", "HOLD_position", "scale_down")
+  )|>
+  kable_material()
+
+t3 |>
+  rename(
+    "Altura" = height,
+    "Volume" = volume,
+    "Circunferência" = girth
+  )|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+  kbl(
+    caption = "Medidas Resumo dos dados de T3",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = T, 
+    booktabs = T
+  )|>
+  footnote(general = "---") |>
+  kable_styling(
+    full_width = F,
+    position = 'center', 
+    latex_options = c("striped", "HOLD_position", "scale_down")
+  )|>
+  kable_material()
+```
+
+
 
 
 

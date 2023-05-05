@@ -79,10 +79,40 @@ dados1|>
 
 ### Correlação ----
   
-cor.test(dados1$volume, dados1$height)
 
 corrplot::corrplot(cor(dados1), method = "number", type = "lower")
 
+#### Significância da Correlação ----
+
+(cortest1 <- cor.test(dados1$volume, dados1$height))
+
+(resultados <- cbind(cortest1$statistic, cortest1$p.value))
+(aux <- rbind(cortest1$conf.int[1:2]))
+
+(resultados <- cbind(resultados, aux))
+
+rownames(resultados) <- "Altura" 
+colnames(resultados) <- c("t", "p-valor", "LI", "LS")
+
+resultados|>
+  kbl(
+    caption = "Teste de Hipótese para Correlação entre Volume e Altura",
+    digits = 5,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", row.names = T, booktabs = T
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = T
+  )|>
+  footnote(
+    general = "Teste realizado com 5% de significância",
+    general_title = "Nota:",
+    footnote_as_chunk = T
+  )|>
+  kable_material()
 
 ### Ajuste do Modelo + Gráfico ----
 dados1|>
@@ -135,25 +165,32 @@ dados1|>
   # H0: Beta_1 = 0
   # H1: Beta1 =/ 0
 
-anova(mFit1)
+fit_anova <- anova(mFit1)|>
+  as.data.frame() # Convertendo em data frame que possibilita converter uma coluna em caractere.
 
-# fit_anova <- anova(mLstat)
-# fit_sumario <- summary(mLstat)
-# ic_parametros <- confint(mLstat)
+fit_anova|> is.na() # Verificando a existência de NAs
 
-# ic_parametros <- confint(mLstat)
+glimpse(fit_anova)
 
-ic_parametros[1,1]
+fit_anova <- fit_anova|>
+  mutate(
+    `F value` = 
+      scales::number(`F value`, accuracy = 0.0001, 
+                     big.mark = ".", decimal.mark = ","),
+    `Pr(>F)` = 
+      scales::number(`Pr(>F)`, accuracy = 0.0001, 
+                     big.mark = ".", decimal.mark = ","))
 
-resultados <- cbind(anova(mFit1))
+fit_anova[is.na(fit_anova)] <- "" # Remove os NAs e converte as colunas em caracteres.
 
-rownames(resultados) <- c("Regressão", "Resíduos")
+glimpse(fit_anova)
 
-resultados %>% tibble::as_tibble()
+rownames(fit_anova) <- c("Regressão", "Resíduos")
 
-resultados|>
+# Criando a tabela
+fit_anova|>
   kbl(
-    caption = "Análise de Variância (ANOVA) e Intervalos de Confiança para os parâmetros estimados no MRLS.",
+    caption = "Análise de Variância (ANOVA).",
     format.args=list(big.mark=".", decimal.mark=","),
     digits = 3, align = "c", row.names = T, booktabs = T,
     escape = F,
@@ -163,10 +200,23 @@ resultados|>
     full_width = F, position = 'center', 
     latex_options = c("striped", "HOLD_position", "repeat_header")
   )|>
-  column_spec(1, bold = T
+  footnote(
+    number = c("GL: Graus de Liberdade"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
   )|>
+  column_spec(1, bold = T)|>
+  # column_spec(5, color = ifelse(fit_anova$`F value` == 0, "red", "black"))|>
+  # column_spec(6, ifelse(fit_anova$`Pr(>F)` == 0, 3, fit_anova$`Pr(>F)`))|>
   # add_header_above(c(" " = 1, "ANOVA" = 5, "Intervalos de Confiança" = 2))|>
   kable_material()
+# scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")
+
+# fit_sumario <- summary(mLstat)
+# ic_parametros <- confint(mLstat)
+
+# ic_parametros <- confint(mLstat)
+
 
 # fit_sumario[["coefficients"]] %>% tibble::as_tibble() %>% 
 # teste %>% tibble::as_tibble() %>% 
@@ -189,36 +239,6 @@ resultados|>
 #     latex_options = c("striped", "HOLD_position", "repeat_header"))|>
 #   column_spec(1, bold = F)|>
 #   kable_material()
-
-fit_anova %>%
-  kbl(
-    caption = "Resultados da ANOVA.",
-    digits = 4,
-    format.args=list(big.mark=".", decimal.mark=","),
-    align = "c", 
-    row.names = F,
-    col.names =
-      c("GL", "SQ", "QM", "Estatística", "p-valor")
-  ) %>%
-  footnote(
-    number = c(
-      "Linha 1: Dados referentes a β0", 
-      "Linha 2: Dados referentes a β1",
-      "GL: Graus de Liberdade", 
-      "SQ: Soma de Quadrados", 
-      "QM: Quadrado Médio", 
-      "Estatística: F-Snedecor"
-    ),
-    number_title = "Legenda:",
-    footnote_as_chunk = F
-  )|>
-  kable_styling(
-    full_width = F, position = 'center', 
-    latex_options = c("striped", "HOLD_position", "repeat_header")
-  )|>
-  column_spec(1, bold = F
-  )|>
-  kable_material()
 
 ic_parametros %>% 
   kbl(
