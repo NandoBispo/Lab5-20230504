@@ -79,6 +79,7 @@ dados1|>
 
 ### Correlação ----
   
+cor(dados1$volume, dados1$height)
 
 corrplot::corrplot(cor(dados1), method = "number", type = "lower")
 
@@ -270,9 +271,9 @@ ic_parametros %>%
 {
   
 # Como coletar os resíduos do modelo ajustado:
-  # rstudent(mFit1) #para os resíduos estudentizados
-  # rstandard(mFit1) #para os resíduos padronizados
-  # residuals(mFit1) #para os resíduos ordinários
+  rstudent(mFit1) #para os resíduos estudentizados
+  rstandard(mFit1) #para os resíduos padronizados
+  residuals(mFit1) #para os resíduos ordinários
 
 #### Gráficos RBase ----
   par(mfrow = c(2, 2))
@@ -433,23 +434,25 @@ d3 <- mFit1_resid %>%
     axis.title = element_text(size = 8, face = "plain"),
     axis.line = element_line(size = 0.8, color = "#222222"))
   
-##### Gráfico Homogeneidade de Variâncias (Locação-Escala) ----
-mFit1 %>% 
-  ggplot(aes(x = rstandard(mFit1), y = rstudent(mFit1))) + 
+##### Gráfico Resíduos Estudentizados vs. Volume Médio Ajustado ----
+mFit1_resid %>% 
+  ggplot(aes(x = .fitted, y = rstudent(mFit1))) + 
   geom_point(color = "#234B6E") +
+  geom_hline(aes(yintercept = 0), col="red")+
   # geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
-  geom_smooth(
-    se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
+  # geom_smooth(
+  #   se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
   # ylab("$\\sqrt(Resíduos Padronizados)$")+
   # ggtitle("Teste")+
   labs(
-    x = "Valores Ajustados",
-    y = expression(sqrt("|Resíduos Padronizados|")),
-    title = "Homogeneidade de Variâncias (Locação-Escala)")+
+    x = "Volume Médio Ajustado",
+    y = "Resíduos Estudentizados",
+    title = "Resíduos Estudentizados vs. Volume Médio Ajustado")+
   scale_x_continuous(
     labels = scales::number_format(
       big.mark = ".", decimal.mark = ","))+
   scale_y_continuous(
+    breaks = seq(from = -3, to = 4, by = 1),
     labels = scales::number_format(
       big.mark = ".", decimal.mark = ","))+
   theme_minimal()+
@@ -457,7 +460,7 @@ mFit1 %>%
     legend.position = "none",
     plot.title = element_text(size = 11, face = "bold"),
     axis.title = element_text(size = 8, face = "plain"),
-    axis.line = element_line(size = 0.8, color = "#222222"))
+    axis.line = element_line(size = 0.5, color = "#222222"))
     
 d1 + d2 + d3 + 
   plot_layout(ncol = 2) +
@@ -903,6 +906,34 @@ d1 + d2 + d3 + d4 +
 (mFitT3 <- lm(volume~height, data = t3))
 
 
+### Residuos ----
+
+mFitT1_resid <- broom::augment(mFitT1)
+mFitT2_resid <- broom::augment(mFitT2)
+mFitT3_resid <- broom::augment(mFitT3)
+
+mFitT1_resid %>% 
+  ggplot(aes(x = .fitted, y = rstudent(mFit1))) + 
+  geom_point(color = "#234B6E") +
+  geom_hline(aes(yintercept = 0), col="tomato")+
+  labs(
+    x = "Valores Ajustado",
+    y = "Resíduos Estudentizados",
+    title = "Resíduos Estudentizados vs. Valores Ajustados")+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    breaks = seq(from = -3, to = 4, by = 1),
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "plain"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.5, color = "#222222"))
+
 
 
 
@@ -927,3 +958,30 @@ dados2 <- dados2|>
   janitor::clean_names()
 
 ## Análises ----
+
+### Dados Faltantes ----
+is.na(dados2$chol)|>
+  sum()
+
+
+# carregando pacote
+install.packages("naniar")
+library(naniar)
+
+# uma análise inicial dos dados faltantes
+naniar::vis_miss(dados2)
+
+# uma outra visualização para dados faltantes
+naniar::gg_miss_var(dados2,
+            show_pct = TRUE) +
+  labs(x = "Variáveis",
+       y = "% Dados faltantes")
+
+
+
+
+
+
+
+
+

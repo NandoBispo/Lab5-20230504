@@ -80,7 +80,7 @@ dados1 <- dados1|>
 
 ## Metodologia
 
-O conjunto de dados *trees*, disponível no pacote *datasets*, contém informações de 31 cerejeiras (*Black cherry*) da Floresta Nacional de Allegheny, relativas a três características numéricas contínuas:
+O primeiro conjunto de dados a ser analisado é denominado *trees*, disponível no pacote *datasets*, contém informações de 31 cerejeiras (*Black cherry*) da Floresta Nacional de Allegheny, relativas a três características numéricas contínuas:
 
 - Volume de madeira útil (em metros cúbicos (m³)); 
 - Altura (em metros (m));
@@ -116,7 +116,8 @@ dados1|>
     color = "#234B6E"
     )+
   labs(
-    title = "Modelo Ajustado entre o Volume e à Altura",
+    title = "Modelo Ajustado entre Volume e Altura",
+    subtitle = "Diagrama de dispersão com equação da reta de regressão ajustada, \nCoeficiente de Correlação de Pearson, Coeficiente de Determinação, Coeficiente de \nDeterminação Ajustado, Reta de Regressão e Intervalo de Confiança",
     y = 'Volume (m³)',
     x = 'Altura (m)'
   )+
@@ -134,7 +135,7 @@ dados1|>
           geom = "text", label.x = 19.2, label.y = 1.75, 
       position = "identity", 
       color="red",
-      size = 3, show.legend = F
+      size = 3.5, show.legend = F
   )+
   geom_smooth(
     method=lm, se=T, formula = "y ~ x", color = "tomato")+
@@ -147,7 +148,7 @@ dados1|>
       decimal.mark = ","
     ))+
     theme(legend.position = "none",
-          axis.line = element_line(size = 0.8, color = "#222222"))
+          axis.line = element_line(size = 0.5, color = "#222222"))
 
 ## Modelo Ajustado
 mFit1 <- lm(volume~height, data = dados1)
@@ -155,9 +156,11 @@ mFit1 <- lm(volume~height, data = dados1)
 ```
 
 
-Com base na Figura 1 é possível sugerir uma relação positiva entre as variáveis **Volume** e **Altura**, fato confirmado pelo Coeficiente de Correlação de Pearson (**R**) que após o teste de hipótese para avaliar a significância da correlação, demonstrou possuir correlação não nula. A Tabela 1 traz os resultados do teste de hipóteses para correlação e o Intervalo de Confiança para o verdadeiro valor da correlação, podendo concluir, com base no p-valor menor que o nível de significância (**$\alpha = 5\%$**), que a hipótese nula ($H_0$) foi rejeitada, assumindo-se a hipótese alternativa ($H_1$) que afirma que $\rho \neq 0$.
+Com base na Figura 1 é possível sugerir uma relação positiva entre as variáveis **Volume** e **Altura**, fato confirmado pelo Coeficiente de Correlação de Pearson (*R = `r scales::number(cor(dados1$volume, dados1$height), accuracy = 0.001, big.mark = ".", decimal.mark = ",")`*) que após o teste de hipótese para avaliar a significância da correlação estimada, demonstrou **possuir correlação não nula**. A reta de regressão ajustada segue a seguinte equação:
 
-O Coeficiente de Determinação ($R^2$) apresenta um valor baixo, podendo afirmar que apenas aproximadamente 36% da variabilidade dos dados está sendo explicada pelo modelo de regressão calculado.
+$$ \hat{Y}_i = -2,5 + 0,14X_i$$
+
+A Tabela 1 traz os resultados do teste de hipóteses para correlação e o Intervalo de Confiança para o verdadeiro valor da correlação, podendo concluir, com base no p-valor menor que o nível de significância (**$\alpha = 5\%$**), que a hipótese nula ($H_0$) foi rejeitada, assumindo-se a hipótese alternativa ($H_1$) que afirma que $\rho \neq 0$.
 
 ```{r tab1:teste_correlacao}
 #| echo: false
@@ -194,6 +197,8 @@ resultados|>
   )|>
   kable_material()
 ```
+
+O Coeficiente de Determinação ($R^2$) apresenta um valor baixo, podendo afirmar que apenas aproximadamente 36% da variabilidade dos dados está sendo explicada pelo modelo de regressão calculado.
 
 
 ### Significância do Modelo
@@ -271,17 +276,17 @@ resultados|>
   )|>
     footnote(
     number = c(
-      "LI: Limite Inferior (alpha = 2,5%)", 
-      "LS: Limite Superior (alpha = 97,5%)"),
+      "LI: Limite Inferior (2,5%)", 
+      "LS: Limite Superior (97,5%)"),
     number_title = "Legenda:",
     footnote_as_chunk = F
   )|>
   kable_material()
 ```
 
-Com base na Tabela 1, avaliando o p-valor é possível afirmar que o modelo é significante rejeitando assim $H_0$ que tem como pressuposto $\hat{\beta_1} = 0$.
+Com base na Tabela 2, avaliando o p-valor é possível afirmar que o modelo é significante rejeitando assim $H_0$ que tem como pressuposto $\hat{\beta_1} = 0$.
 
-Através dos Intervalos de Confiança calculados é possível afirmar **com 95% de confiança que o verdadeiro valor de $\beta_0$ está entre `r glue::glue('({scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[1,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')` e que o verdadeiro valor de $\beta_1$ está entre `r glue::glue('({scales::number(confint(mFit1)[2,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[2,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')`**.
+Através dos Intervalos de Confiança calculados (Tabela 3) é possível afirmar **com 95% de confiança que o verdadeiro valor de $\beta_0$ está entre `r glue::glue('({scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[1,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')` e que o verdadeiro valor de $\beta_1$ está entre `r glue::glue('({scales::number(confint(mFit1)[2,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[2,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')`**.
 
 
 ### Análise de Resíduos
@@ -295,74 +300,20 @@ Através dos Intervalos de Confiança calculados é possível afirmar **com 95% 
 
 mFit1_resid <- broom::augment(mFit1)
 
-#### Gráfico de Resíduos contra Valor Médio
+####  Gráfico de Resíduos contra Valor Médio
 d1 <- mFit1_resid|>
-  ggplot(aes(x = .fitted, y = .resid)) + 
+ ggplot(aes(x = .fitted, y = rstudent(mFit1))) + 
   geom_point(color = "#234B6E") +
-  geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
-  geom_smooth(
-    se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
-  labs(
-    x = "Valores Médios Ajustados",
-    y = "Resíduos Ordinários",
-    title = "Gráfico de Resíduos vs. Valores Ajustados"
-  )+
-  # scale_x_continuous(breaks = seq(0,30,5))+
-  scale_x_continuous(
-    labels = scales::number_format(
-      big.mark = ".", decimal.mark = ","))+
-  scale_y_continuous(
-    labels = scales::number_format(
-      big.mark = ".", decimal.mark = ","))+
-  theme_minimal()+
-  theme(
-    legend.position = "none",
-    plot.title = element_text(size = 11, face = "plain"),
-    axis.title = element_text(size = 8, face = "plain"),
-    axis.line = element_line(size = 0.8, color = "#222222"))
-  
-#### Gráfico de normalidade dos resíduos
-d2 <- mFit1_resid %>% 
-  ggplot(aes(sample = .std.resid)) + 
-  qqplotr::stat_qq_band(alpha = 0.3) + # Plota a banda de confiança
-  qqplotr::stat_qq_point(color = "#234B6E") + # Plota os pontos
-  qqplotr::stat_qq_line(linetype = 2, size = 0.2) + # Plota a reta
-  labs(
-    x = "Quantil Teórico",
-    y = "Quantil Amostral",
-    title = "Gráfico quantil-quantil normal"
-  )+
-  # scale_x_continuous(breaks = seq(-3,3,1))+
-  scale_x_continuous(
-    labels = scales::number_format(
-      big.mark = ".", decimal.mark = ","))+
-  scale_y_continuous(
-    labels = scales::number_format(
-      big.mark = ".", decimal.mark = ","))+
-  theme_minimal()+
-  theme(
-    legend.position = "none",
-    plot.title = element_text(size = 11, face = "plain"),
-    axis.title = element_text(size = 8, face = "plain"),
-    axis.line = element_line(size = 0.8, color = "#222222"))
-  
-##### Gráfico Homogeneidade de Variâncias (Locação-Escala) ----
-d3 <- mFit1_resid %>% 
-  ggplot(aes(x = .fitted, y = sqrt(abs(.std.resid)))) + 
-  geom_point(color = "#234B6E") +
-  # geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
-  geom_smooth(
-    se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
-  # ylab("$\\sqrt(Resíduos Padronizados)$")+
-  # ggtitle("Teste")+
+  geom_hline(aes(yintercept = 0), col="tomato")+
   labs(
     x = "Valores Ajustados",
-    y = expression(sqrt("|Resíduos Padronizados|")),
-    title = "Homogeneidade de Variâncias \n(Locação-Escala)")+
+    y = "Resíduos Estudentizados",
+    title = "Resíduos Estudentizados vs. \nValores Ajustados")+
   scale_x_continuous(
     labels = scales::number_format(
       big.mark = ".", decimal.mark = ","))+
   scale_y_continuous(
+    breaks = seq(from = -3, to = 4, by = 1),
     labels = scales::number_format(
       big.mark = ".", decimal.mark = ","))+
   theme_minimal()+
@@ -370,28 +321,106 @@ d3 <- mFit1_resid %>%
     legend.position = "none",
     plot.title = element_text(size = 11, face = "plain"),
     axis.title = element_text(size = 8, face = "plain"),
-    axis.line = element_line(size = 0.8, color = "#222222"))
+    axis.line = element_line(size = 0.5, color = "#222222"))
 
-d1 + d2 + d3 + 
-  plot_layout(ncol = 2) +
-  plot_annotation(
-  title = "Figura 2: Análise de resíduos do modelo ajustado",
-  tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
-  tag_sep = ".", tag_suffix = ":") &
-  theme(
-    legend.position = "none",
-    plot.tag.position = c(0, 1),
-    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4)
-  )
+####  Gráfico de normalidade dos resíduos
+ d2 <- mFit1_resid %>%
+   ggplot(aes(sample = .std.resid)) +
+   qqplotr::stat_qq_band(alpha = 0.3) +
+   qqplotr::stat_qq_point(color = "#234B6E") +
+   qqplotr::stat_qq_line(linetype = 2, size = 0.2) +
+   labs(
+     x = "Quantil Teórico",
+     y = "Quantil Amostral",
+     title = "Gráfico quantil-quantil normal"
+   )+
+    scale_x_continuous(breaks = seq(-3,3,1))+
+   scale_x_continuous(
+     labels = scales::number_format(
+       big.mark = ".", decimal.mark = ","))+
+   scale_y_continuous(
+     labels = scales::number_format(
+       big.mark = ".", decimal.mark = ","))+
+   theme_minimal()+
+   theme(
+     legend.position = "none",
+     plot.title = element_text(size = 11, face = "plain"),
+     axis.title = element_text(size = 8, face = "plain"),
+     axis.line = element_line(size = 0.5, color = "#222222"))
+
+#### Gráfico Homogeneidade de Variâncias (Locação-Escala) ----
+ d3 <- mFit1_resid %>%
+   ggplot(aes(x = .fitted, y = sqrt(abs(.std.resid)))) +
+   geom_point(color = "#234B6E") +
+   geom_smooth(
+     se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
+   labs(
+     x = "Valores Ajustados",
+     y = expression(sqrt("|Resíduos Padronizados|")),
+     title = "Homogeneidade de Variâncias \n(Locação-Escala)")+
+   scale_x_continuous(
+     labels = scales::number_format(
+       big.mark = ".", decimal.mark = ","))+
+   scale_y_continuous(
+     labels = scales::number_format(
+       big.mark = ".", decimal.mark = ","))+
+   theme_minimal()+
+   theme(
+     legend.position = "none",
+     plot.title = element_text(size = 11, face = "plain"),
+     axis.title = element_text(size = 8, face = "plain"),
+     axis.line = element_line(size = 0.5, color = "#222222"))
+
+ d1 + d2 + d3 +
+   plot_layout(ncol = 2) +
+   plot_annotation(
+   title = "Figura 2: Análise de resíduos do modelo ajustado",
+   tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+   tag_sep = ".", tag_suffix = ":") &
+   theme(
+     legend.position = "none",
+     plot.tag.position = c(0, 1),
+     plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4)
+   )
 
 
 ```
 
+```{r fig5:analise_residuos2}
+#| echo: false
+#| warning: false
+#| fig-width: 7
+#| fig-height: 4
 
 
-A Figura 2 Sub.Fig A apresenta um comportamento assimétrico dos resíduos, podendo constatar uma pequena variabilidade inicial e um aumento desta à medida que os valores ajustados aumentam, caracterizando uma heterocedasticidade. A Sub.Fig C, que trada da Homogeneidade de Variâncias (Locação-Escala) mostra que há um problema na variabilidade dos dados, corrobora com a interpretação feita na análise da Sub.Fig. A, de que há uma mudança na variabilidade dos dados, caracterizando Heterocedasticidade dos dados.
+# mFit1_resid <- broom::augment(mFit1)
+# 
+# mFit1_resid %>% 
+#   ggplot(aes(x = .fitted, y = rstudent(mFit1))) + 
+#   geom_point(color = "#234B6E") +
+#   geom_hline(aes(yintercept = 0), col="tomato")+
+#   labs(
+#     x = "Valores Ajustado",
+#     y = "Resíduos Estudentizados",
+#     title = "Resíduos Estudentizados vs. Valores Ajustados")+
+#   scale_x_continuous(
+#     labels = scales::number_format(
+#       big.mark = ".", decimal.mark = ","))+
+#   scale_y_continuous(
+#     breaks = seq(from = -3, to = 4, by = 1),
+#     labels = scales::number_format(
+#       big.mark = ".", decimal.mark = ","))+
+#   theme_minimal()+
+#   theme(
+#     legend.position = "none",
+#     plot.title = element_text(size = 11, face = "plain"),
+#     axis.title = element_text(size = 8, face = "plain"),
+#     axis.line = element_line(size = 0.5, color = "#222222"))
+```
+
+
+A Figura 2 Sub.Fig A apresenta um comportamento assimétrico dos resíduos, podendo ser constatado uma pequena variabilidade inicial e um aumento desta à medida que os valores ajustados aumentam, caracterizando uma heterocedasticidade. A Sub.Fig C, que trada da Homogeneidade de Variâncias (Locação-Escala) ressalta que há um problema na variabilidade dos dados, corroborando com a interpretação feita na análise da Sub.Fig. A, de que há uma mudança na variabilidade dos dados, caracterizando Heterocedasticidade dos dados.
 A Sub.Fig. B que traz o gráfico para avaliação da normalidade dos dados, mostra que apesar dos dados não estarem precisamente sobre a reta de referência, os mesmos estão contidos na região pertencente ao Intervalo de Confiança - IC, podendo assumir que há normalidade, contudo tal avaliação será confirmada após os Testes de Diagnóstico.
-
 
 
 ### Testes de Diagnósticos do Modelo
@@ -484,23 +513,20 @@ resultados|>
   kable_material()
 ```
 
-
-
-
+A Tabela 4 traz os testes de diagnósticos realizados para avaliar o modelo de regressão ajustado, conforme análise gráfica dos resíduos há a confirmação da heterocedasticidade de variância conforme o p-valor obtido pelo teste de Breush-Pagan (`r scales::number(t_bp$p.value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`) bem como a dependência entre as características confirmado pelo p-valor do teste de Durbin-Watson (`r scales::number(t_dw$p.value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`), em ambos os testes a hipótese nula ($H_0$) foi rejeitada com base p-valor, como tentativa de contornar a quebra dos pressupostos se faz necessária a transformação da variável resposta.
 
 ### Transformações dos Dados
 
 Tendo em vista que o modelo não atendeu aos pressupostos se faz necessário a utilização de técnicas para buscar uma melhora de performace do modelo antes da possibilidade de descarte e para tanto algumas transformações são sugeridas, sendo estas:
 
-- T1 = $\sqrt{Y}$;
-- T2 = $log(Y)$;
-- T3 = $Y^2$.
+- $T_1 = \sqrt{Y}$;
+- $T_2 = log(Y)$;
+- $T_3 = Y^2$.
 
 Sendo Y a variável resposta do modelo representada pelo Volume.
 
 
-
-```{r tab2:summary-transform}
+```{r tab5:summary-transform}
 #| echo: false
 #| warning: false
 
@@ -523,11 +549,6 @@ resultados <- cbind(dados1$volume, t1$volume, t2$volume, t3$volume)
 colnames(resultados) <- c("1. Volume", "2. √Volume", "3. log(Volume)", "4. Volume²")
 
 resultados |>
-  # rename(
-  #   "Altura" = height,
-  #   "Volume" = volume,
-  #   "Circunferência" = girth
-  # )|>
   summarytools::descr(
     stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv"),
     justify = "c",
@@ -542,7 +563,6 @@ resultados |>
     row.names = T, 
     booktabs = T
   )|>
-  # footnote(general = "---") |>
   kable_styling(
     full_width = F,
     position = 'center', 
@@ -551,27 +571,21 @@ resultados |>
   column_spec(1, bold = T)|>
   kable_material()
 
-
 ```
 
+A Tabela 5 traz a sumarização da característica em analise em sua forma natural juntamente com as formas transformadas para tentar identificar o comportamento destas transformações, podendo constatar um aumento na variabilidade dos dados, com base no valor do Coeficiente de Variação, com exceção da variável sob a transformação $Y^2$. Seguem as equações das retas ajustadas após a transformação.
 
-```{r fig4:box-cox}
-#| echo: false
-#| warning: false
-#| fig-width: 7
-#| fig-height: 4
+$$ \sqrt{\hat{Y_i}} = -0,89 + 0,077X_i$$
 
-par(mfrow = c(1, 1), mar=c(4,4,2,1), oma=c(1.5,1,1.5,1))
-MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
-mtext(side = 3, text = "Figura 4: Transformação Box-Cox", outer = T)
-par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1))
+$$ \log(\hat{Y_i}) = -4,4 + 0,18X_i$$
+
+$$ \hat{Y_i}^2 = -5,9 + 0,3X_i$$
 
 
-bc <- MASS::boxcox(mFit1)
-lambda <- bc$x[which.max(bc$y)]
-```
+A Figura 3 traz os diagramas de dispersão com a reta ajustada para o modelo sem transformação e para cada transformação realizada, a fim de possibilitar a identificação das diferenças entre cada modelo.
 
-Analisando o gráfico das **famílias de transformações Box-Cox** é possível identificar que $-0,5 < \lambda_{max} < 0$ ($\lambda_{max} \approx $ `r scales::number(lambda, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`), partindo do princípio que o valor zero está incluso no intervalo de valores possíveis de $\lambda$ que minimizam a variância residual, mesmo o zero não sendo o máximo valor assumido, ainda assim, visando a escolha de uma transformação que possibilite uma interpretação facilitada, a escolha da transformação $log(Y)$ torna-se a escolha mais assertiva. Para avaliar esta situação a Figura 3 foi construída.
+
+
 
 ```{r fig3:transform}
 #| echo: false
@@ -618,7 +632,7 @@ d1 <- dados1|>
   theme(legend.position = "none",
         plot.title = element_text(size = 11, face = "plain"),
         axis.title = element_text(size = 8, face = "plain"),
-        axis.line = element_line(size = 0.8, color = "#222222"))
+        axis.line = element_line(size = 0.5, color = "#222222"))
 
 d2 <- t1|>
   ggplot(aes(x = height, y = volume)) +
@@ -659,7 +673,7 @@ d2 <- t1|>
   theme(legend.position = "none",
         plot.title = element_text(size = 11, face = "plain"),
         axis.title = element_text(size = 8, face = "plain"),
-        axis.line = element_line(size = 0.8, color = "#222222"))
+        axis.line = element_line(size = 0.5, color = "#222222"))
 
 d3 <- t2|>
   ggplot(aes(x = height, y = volume)) +
@@ -700,7 +714,7 @@ d3 <- t2|>
   theme(legend.position = "none",
         plot.title = element_text(size = 11, face = "plain"),
         axis.title = element_text(size = 8, face = "plain"),
-        axis.line = element_line(size = 0.8, color = "#222222"))
+        axis.line = element_line(size = 0.5, color = "#222222"))
 
 d4 <- t3|>
   ggplot(aes(x = height, y = volume)) +
@@ -741,7 +755,7 @@ d4 <- t3|>
   theme(legend.position = "none",
         plot.title = element_text(size = 11, face = "plain"),
         axis.title = element_text(size = 8, face = "plain"),
-        axis.line = element_line(size = 0.8, color = "#222222"))
+        axis.line = element_line(size = 0.5, color = "#222222"))
 
 
 d1 + d2 + d3 + d4 +
@@ -760,22 +774,77 @@ d1 + d2 + d3 + d4 +
 ```
 
 
+```{r fig4:box-cox}
+#| echo: false
+#| warning: false
+#| fig-width: 7
+#| fig-height: 4
+
+par(mfrow = c(1, 1), mar=c(4,4,2,1), oma=c(1.5,1,1.5,1))
+bc <- MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
+mtext(side = 3, text = "Figura 4: Transformação Box-Cox", outer = T)
+par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1))
+
+lambda <- bc$x[which.max(bc$y)]
+```
+
+Analisando o gráfico das **famílias de transformações Box-Cox** é possível identificar que $-0,5 < \lambda_{max} < 0$ ($\lambda_{max}\approx$ `r scales::number(lambda, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`), partindo do princípio que o valor zero está incluso no intervalo de valores possíveis de $\lambda$ que minimizam a variância residual, mesmo o zero não sendo o máximo valor assumido, ainda assim, visando a escolha de uma transformação que possibilite uma interpretação facilitada, a escolha da transformação $log(Y)$ torna-se a escolha mais assertiva. Para avaliar esta situação a Figura 3 foi construída.
+
+
+
 Com base nos valores do Coeficiente de Determinação $R^2$ dos gráficos contidos da Figura 3, é possível constatar que o gráfico cuja transformação $log(Y)$ foi aplicada apresentou uma melhora no que diz respeito a possibilidade do modelo explicar a variabilidade dos dados, mesmo não sendo um valor considerado satisfatório, ainda assim é possível constatar a melhora de performance ao aplicar a transformação na característica utilizada como variável resposta.
 
 ## Conclusão
 
-Após as análises realizadas no modelo ajustado é possível afirmar que para cada aumento de um metro na atura da árvore, há uma redução média de aproximadamente $exp(-4,4)$ m³ no volume ou aproximadamente `r scales::number(exp(-4.4), accuracy = 0.001, big.mark = ".", decimal.mark = ",")` m³ no volume da árvore.
-
+Após as análises realizadas no modelo ajustado é possível afirmar que para cada aumento de um metro na atura da árvore, há uma redução média de $exp(-4,4)$ m³ no volume ou aproximadamente `r scales::number(exp(-4.4), accuracy = 0.001, big.mark = ".", decimal.mark = ",")` m³.
 
 
 # Parte 2: Regressão Linear Múltipla - Estimação pontual
 
+```{r dados2}
+#| echo: false
+#| warning: false
+
+## Dados 2 - Import ----
+dados2 <- read.csv2("Dados2.csv")
+
+### Arrumação ----
+dados2 <- dados2|>
+  janitor::clean_names()
+```
 
 
+## Metodologia
 
+O segundo conjunto de dados a ser analisado, contém informações de 403 afro-americanos residentes no Estado da Virginia (EUA), entrevistados em um estudo referente à prevalência de obesidade, diabetes e outros fatores de risco cardiovasculares. As características apresentadas são:
 
+- Número de identificação do sujeito;
+- Colesterol total;
+- Glicose estabilizada;
+- Lipoproteína de alta densidade (colesterol bom) (hdl);
+- Razão colesterol total e colesterol bom (chol/hdl);
+- Hemoglobina glicada (glyhb);
+- Município de residência (Buckingham ou Louisa);
+- Idade em anos;
+- Sexo;
+- Altura (em polegadas);
+- Peso (em libras);
+- Pressão sanguínea sistólica (1ª medida) (bp.1s);
+- Pressão sanguínea diastólica (1ª medida) (bp.1d);
+- pressão sanguínea sistólica (2ª medida) (bp.2s);
+- Pressão sanguínea diastólica (2ª medida) (bp.2d);
+- Cintura (em polegadas);
+- Quadril (em polegadas). 
 
+Com base nestes dados se desenvolverá:
 
+(a) Verificação de possíveis inconsistências nos dados, dados ausentes e identificar a escala de cada característica;
+(b) Conversão das medidas das características expressas em escalas não usuais ao padrão brasileiro;
+(c) Tentar identificar uma variável que poderia ser considerada a variável resposta em uma análise de regressão e na medida do possível, explorar a relação dessa variável com as demais;
+(d) Proposição de novas variáveis, baseadas nas variáveis disponíveis;
+(e) Ajuste de um Modelo de Regressão Linear Múltiplo - MRLM, interpretação e verificação da significância dos parâmetros do modelo ajustado (apenas para variáveis quantitativas).
+
+## Resultados
 
 
 
