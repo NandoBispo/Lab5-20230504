@@ -555,6 +555,23 @@ resultados |>
 ```
 
 
+```{r fig4:box-cox}
+#| echo: false
+#| warning: false
+#| fig-width: 7
+#| fig-height: 4
+
+par(mfrow = c(1, 1), mar=c(4,4,2,1), oma=c(1.5,1,1.5,1))
+MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
+mtext(side = 3, text = "Figura 4: Transformação Box-Cox", outer = T)
+par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1))
+
+
+bc <- MASS::boxcox(mFit1)
+lambda <- bc$x[which.max(bc$y)]
+```
+
+Analisando o gráfico das **famílias de transformações Box-Cox** é possível identificar que $-0,5 < \lambda_{max} < 0$ ($\lambda_{max} \approx $ `r scales::number(lambda, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`), partindo do princípio que o valor zero está incluso no intervalo de valores possíveis de $\lambda$ que minimizam a variância residual, mesmo o zero não sendo o máximo valor assumido, ainda assim, visando a escolha de uma transformação que possibilite uma interpretação facilitada, a escolha da transformação $log(Y)$ torna-se a escolha mais assertiva. Para avaliar esta situação a Figura 3 foi construída.
 
 ```{r fig3:transform}
 #| echo: false
@@ -743,21 +760,26 @@ d1 + d2 + d3 + d4 +
 ```
 
 
+Com base nos valores do Coeficiente de Determinação $R^2$ dos gráficos contidos da Figura 3, é possível constatar que o gráfico cuja transformação $log(Y)$ foi aplicada apresentou uma melhora no que diz respeito a possibilidade do modelo explicar a variabilidade dos dados, mesmo não sendo um valor considerado satisfatório, ainda assim é possível constatar a melhora de performance ao aplicar a transformação na característica utilizada como variável resposta.
 
+## Conclusão
 
-```{r fig4:box-cox}
-#| echo: false
-#| warning: false
-#| fig-width: 7
-#| fig-height: 4
-
-par(mfrow = c(1, 1), mar=c(4,4,2,1), oma=c(1.5,1,1.5,1))
-MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
-mtext(side = 3, text = "Figura 4: Transformação Box-Cox", outer = T)
-par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1))
-```
+Após as análises realizadas no modelo ajustado é possível afirmar que para cada aumento de um metro na atura da árvore, há uma redução média de aproximadamente $exp(-4,4)$ m³ no volume ou aproximadamente `r scales::number(exp(-4.4), accuracy = 0.001, big.mark = ".", decimal.mark = ",")` m³ no volume da árvore.
 
 
 
 # Parte 2: Regressão Linear Múltipla - Estimação pontual
+
+
+
+
+
+
+
+
+
+
+
+
+
 

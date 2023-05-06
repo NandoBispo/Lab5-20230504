@@ -585,19 +585,8 @@ pairs(dados1,
       # upper.panel = panel.cor, 
       diag.panel = panel.hist)
 
-
-d1 + d2 +
-  plot_layout(ncol = 2) +
-  plot_annotation(
-    # title = "Figura 2: Modelo ajustado e suas transformações",
-    # subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações da variável resposta",
-    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
-    tag_sep = ".", tag_suffix = ":") &
-  theme(
-    legend.position = "none",
-    plot.tag.position = c(0, 1),
-    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
-
+bc <- MASS::boxcox(mFit1)
+bc <- MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
 (lambda <- bc$x[which.max(bc$y)])
 
 t1 <- dados1|>
@@ -820,7 +809,7 @@ d3 <- t2|>
   )+
   labs(
     title = "Modelo Ajustado entre o log[Volume (m³)] e à Altura",
-    y = 'log[Volume (m³)]',
+    y = expression(log('Volume (m³)')),
     x = 'Altura (m)'
   )+
   ggpubr::stat_cor(
