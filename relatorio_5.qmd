@@ -90,7 +90,7 @@ Para esta atividade **serão considerados apenas as informações referentes ao 
 
 (a) Ajuste um modelo linear simples para volume como função da altura da árvore;
 (b) Avalação gráfica dos resíduos Jacknife para diagnóstico do modelo ajustado;
-(c) Transformações das característricas;
+(c) Transformações da característrica utilizada como variável resposta do modelo;
 (d) Avaliação da transformação mais apropriada dentro da família proposta por Box e
 Cox;
 (e) Indicação da melhor transformação analisada.
@@ -116,7 +116,7 @@ dados1|>
     color = "#234B6E"
     )+
   labs(
-    title = "Figura 1: Modelo Ajustado entre o Volume e Altura",
+    title = "Modelo Ajustado entre o Volume e à Altura",
     y = 'Volume (m³)',
     x = 'Altura (m)'
   )+
@@ -357,8 +357,8 @@ d3 <- mFit1_resid %>%
   # ggtitle("Teste")+
   labs(
     x = "Valores Ajustados",
-    y = "√|Resíduos Padronizados|",
-    title = "Homogeneidade de Variâncias (Locação-Escala)")+
+    y = expression(sqrt("|Resíduos Padronizados|")),
+    title = "Homogeneidade de Variâncias \n(Locação-Escala)")+
   scale_x_continuous(
     labels = scales::number_format(
       big.mark = ".", decimal.mark = ","))+
@@ -396,14 +396,111 @@ A Sub.Fig. B que traz o gráfico para avaliação da normalidade dos dados, most
 
 ### Testes de Diagnósticos do Modelo
 
+Para avaliar se o modelo atende aos pressupostos, além da análise gráfica podem ser realizados testes de diagnósticos, que são testes de hipóteses para avaliação dos pressupostos que são:
+
+- Normalidade;
+
+  $H_0:$ Os resíduos possuem normalidade.
+
+  $H_1:$ Os resíduos **não** possuem normalidade.
+
+- Homoscedasticidade (Homogeneidade de Variância);
+
+  $H_0:$ Os resíduos possuem variância constante.
+
+  $H_1:$ Os resíduos **não** possuem variância constante.
+
+- Linearidade;
+- Independência.
+
+  $H_0$: Existe correlação serial entre os resíduos.
+  
+  $H_1$: **Não** existe correlação serial entre os resíduos.
+
+Para tanto serão utilizados os seguintes testes:
+
+- Shapiro-Wilk, para avaliar a Normalidade;
+- Breush-Pagan, para avaliar a Homoscedasticidade;
+- Durbin-Watson, para avaliar a Independência.
+
+
+```{r tab4:teste-diagnostico}
+#| echo: false
+#| warning: false
+
+res1 <- residuals(mFit1)
+
+##### Teste de normalidade dos resíduos ----
+  #H0: normalidade
+  #H1: não normalidade
+
+# SW*
+t_sw <- shapiro.test(res1)
+
+##### Teste de homoscedasticidade dos resíduos ----
+  #H0: resíduos homoscedásticos - Variância constante
+  #H1: resíduos heteroscedásticos - Variância NÃO constante
+
+# BP*
+t_bp <- lmtest::bptest(mFit1, studentize = F)
+
+# Teste deF para linearidade
+
+# Teste de correlação serial lag 1 (Independência dos erros)
+  #H0: correlacionados - existe correlação serial
+  #H1: não correlacionados - não existe correlação serial ///ficou confuso no vídeo as hipoteses///
+
+# DW
+t_dw <- lmtest::dwtest(mFit1)
+
+resultados <- rbind(
+  t_sw$statistic,
+  t_bp$statistic,
+  t_dw$statistic)
+
+aux <- rbind(
+  t_sw$p.value,
+  t_bp$p.value,
+  t_dw$p.value)
+
+resultados <- cbind(resultados, aux)
+
+rownames(resultados) <- c("Shapiro-Wilk", "Breush-Pagan", "Durbin-Watson")
+
+colnames(resultados) <- c("Estatística de teste", "p-valor")
+
+resultados|>
+  kbl(
+    caption = "Testes de Diagnósticos dos Resíduos",
+    digits = 5,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", row.names = T, booktabs = T
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = T)|>
+  kable_material()
+```
+
 
 
 
 
 ### Transformações dos Dados
 
+Tendo em vista que o modelo não atendeu aos pressupostos se faz necessário a utilização de técnicas para buscar uma melhora de performace do modelo antes da possibilidade de descarte e para tanto algumas transformações são sugeridas, sendo estas:
 
-```{r transformacoes}
+- T1 = $\sqrt{Y}$;
+- T2 = $log(Y)$;
+- T3 = $Y^2$.
+
+Sendo Y a variável resposta do modelo representada pelo Volume.
+
+
+
+```{r tab2:summary-transform}
 #| echo: false
 #| warning: false
 
@@ -458,6 +555,207 @@ resultados |>
 ```
 
 
+
+```{r fig3:transform}
+#| echo: false
+#| warning: false
+#| fig-width: 7
+#| fig-height: 6
+
+d1 <- dados1|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  labs(
+    title = "Modelo Ajustado entre o Volume e à \nAltura",
+    y = 'Volume (m³)',
+    x = 'Altura (m)'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 19.2, label.y = 2, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 2.5)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 19.2, label.y = 1.75,
+    position = "identity",
+    color="red",
+    size = 2.5, show.legend = F
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    breaks = seq(0, 2.5, 0.5),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        plot.title = element_text(size = 11, face = "plain"),
+        axis.title = element_text(size = 8, face = "plain"),
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+d2 <- t1|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  labs(
+    title = "Modelo Ajustado entre a raiz[Volume (m³)] \ne à Altura",
+    y = expression(sqrt('Volume (m³)')),
+    x = 'Altura (m)'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label..,  sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 19.2, label.y = 1.375, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 2.5)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 19.2, label.y = 1.25, 
+    position = "identity", 
+    color="red",
+    size = 2.5, show.legend = F
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    breaks = seq(0, 1.5, 0.25),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        plot.title = element_text(size = 11, face = "plain"),
+        axis.title = element_text(size = 8, face = "plain"),
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+d3 <- t2|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  labs(
+    title = "Modelo Ajustado entre o log[Volume (m³)] \ne à Altura",
+    y = expression(log('Volume (m³)')),
+    x = 'Altura (m)'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label..,  sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 19.2, label.y = 0.7, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 2.5)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 19.2, label.y = 0.5, 
+    position = "identity", 
+    color="red",
+    size = 2.5, show.legend = F
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    breaks = seq(-1.3, 0.8, 0.3),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        plot.title = element_text(size = 11, face = "plain"),
+        axis.title = element_text(size = 8, face = "plain"),
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+d4 <- t3|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  labs(
+    title = "Modelo Ajustado entre o [Volume (m³)]² \ne à Altura",
+    y = '[Volume (m³)]²',
+    x = 'Altura (m)'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label..,  sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 19.2, label.y = 4.5, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 2.5)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 19.2, label.y = 4, 
+    position = "identity", 
+    color="red",
+    size = 2.5, show.legend = F
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    breaks = seq(-0.5, 5, 0.75),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        plot.title = element_text(size = 11, face = "plain"),
+        axis.title = element_text(size = 8, face = "plain"),
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+
+d1 + d2 + d3 + d4 +
+  plot_layout(ncol = 2) +
+  plot_annotation(
+    title = "Figura 3: Modelo ajustado e suas transformações",
+    subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações \nda variável resposta",
+    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+    tag_sep = ".", tag_suffix = ":") &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
+
+
+```
+
+
+
+
+```{r fig4:box-cox}
+#| echo: false
+#| warning: false
+#| fig-width: 7
+#| fig-height: 4
+
+par(mfrow = c(1, 1), mar=c(4,4,2,1), oma=c(1.5,1,1.5,1))
+MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
+mtext(side = 3, text = "Figura 4: Transformação Box-Cox", outer = T)
+par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1))
+```
 
 
 

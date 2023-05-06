@@ -133,7 +133,7 @@ dados1|>
     method = "pearson",
     label.x = 19.2, label.y = 2, show.legend = F,
     p.accuracy = 0.001, r.accuracy = 0.0001,
-    size = 3)+
+    size = 3.5)+
   ggpubr::stat_regline_equation(
       aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
           geom = "text", label.x = 19.2, label.y = 1.75, 
@@ -268,6 +268,12 @@ ic_parametros %>%
 
 ###Ana.  Resíduos ----
 {
+  
+# Como coletar os resíduos do modelo ajustado:
+  # rstudent(mFit1) #para os resíduos estudentizados
+  # rstandard(mFit1) #para os resíduos padronizados
+  # residuals(mFit1) #para os resíduos ordinários
+
 #### Gráficos RBase ----
   par(mfrow = c(2, 2))
   
@@ -284,6 +290,42 @@ ic_parametros %>%
   library(ggthemes)
   
 ##### Histograma dos resíduos padronizados + curva normal ----
+  mFit1|>
+    ggplot2::ggplot(aes(x = rstudent(mFit1)))+
+    geom_histogram(aes(y = ..density..), fill = "skyblue", 
+                   color = "blue", binwidth = 0.3, alpha = 0.5)+
+    geom_density(
+      # fill = "red", 
+      alpha = 0.2)+
+    stat_function(fun = dnorm, 
+                  args = (
+                    list(
+                      mean = mean(rstudent(mFit1)), 
+                      sd = sd(rstudent(mFit1)))), 
+                  # geom = "polygon", 
+                  # fill = "blue", 
+                  # alpha = 0.2,
+                  # color = "black", 
+                  size = 0.5)+
+    labs(
+      x = "Resíduos Estudentizados",
+      y = "Densidade",
+      title = "Histograma dos Resíduos Estudentizados (Jacknife)"
+    )+
+    scale_x_continuous(breaks = seq(-3, 3, 1))+
+    scale_y_continuous(
+      # labels = scales::percent
+      labels = scales::number_format(
+        big.mark = ".",
+        decimal.mark = ","
+      )
+      )+
+    # theme_minimal()+
+    theme(legend.position = "none",
+          axis.line = element_line(size = 0.8, color = "#222222"))
+    ggthemes::theme_economist()
+    
+##### Histograma dos resíduos estudentizado + curva normal ----
   mFit1_resid|>
     ggplot2::ggplot(aes(x = .std.resid))+
     geom_histogram(aes(y = ..density..), fill = "skyblue", 
@@ -376,7 +418,7 @@ d3 <- mFit1_resid %>%
   # ggtitle("Teste")+
   labs(
     x = "Valores Ajustados",
-    y = "√|Resíduos Padronizados|",
+    y = expression(sqrt("|Resíduos Padronizados|")),
     title = "Homogeneidade de Variâncias (Locação-Escala)")+
   scale_x_continuous(
     labels = scales::number_format(
@@ -391,6 +433,31 @@ d3 <- mFit1_resid %>%
     axis.title = element_text(size = 8, face = "plain"),
     axis.line = element_line(size = 0.8, color = "#222222"))
   
+##### Gráfico Homogeneidade de Variâncias (Locação-Escala) ----
+mFit1 %>% 
+  ggplot(aes(x = rstandard(mFit1), y = rstudent(mFit1))) + 
+  geom_point(color = "#234B6E") +
+  # geom_hline(yintercept = 0, linetype = 2, size = 0.2) +
+  geom_smooth(
+    se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
+  # ylab("$\\sqrt(Resíduos Padronizados)$")+
+  # ggtitle("Teste")+
+  labs(
+    x = "Valores Ajustados",
+    y = expression(sqrt("|Resíduos Padronizados|")),
+    title = "Homogeneidade de Variâncias (Locação-Escala)")+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "bold"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.8, color = "#222222"))
     
 d1 + d2 + d3 + 
   plot_layout(ncol = 2) +
@@ -452,32 +519,21 @@ summary(lm(res1^2 ~ dados1$height))
 # DW
 (t_dw <- lmtest::dwtest(mFit1))
 
-
-
-
-
-
-
-
 resultados <- rbind(
-  t_ks$statistic,
   t_sw$statistic,
-  t_gq$statistic,
   t_bp$statistic,
   t_dw$statistic)
 
 aux <- rbind(
-  t_ks$p_value,
-  t_sw$p_value,
-  t_gq$p_value,
-  t_bp$p_value,
-  t_dw$p_value)
+  t_sw$p.value,
+  t_bp$p.value,
+  t_dw$p.value)
 
 resultados <- cbind(resultados, aux)
 
-rownames(resultados) <- c("Kolmogorov-Smirnov", "Shapiro-Wilks", "Goldfeld-Quandt", "Breush-Pagan", "Durbin-Watson")
+rownames(resultados) <- c("Shapiro-Wilks", "Breush-Pagan", "Durbin-Watson")
 
-colnames(resultados) <- c("Estatística teste", "p-valor")
+colnames(resultados) <- c("Estatística de teste", "p-valor")
 
 resultados|>
   kbl(
@@ -501,6 +557,48 @@ resultados|>
 
 
 ## Transformações ----
+
+### BoxCox ----
+
+library(MASS)
+
+par(mfrow = c(2, 1), mar=c(3,3,2,1), oma=c(1.5,1,1.5,1)) # abaixo, à esquerda, acima, à direta
+MASS::boxcox(mFit1, ylab = " ", xlab = " ")
+MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = " ", xlab = " ")
+mtext(side = 1, text = expression(lambda), outer = T)
+mtext(side = 2, text = "log-Verossimilhança", outer = T)
+mtext(side = 3, text = "Box-Cox", outer = T)
+par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1)) # Padrão
+
+par(no.readonly = TRUE)
+
+par(mfrow = c(1, 1), mar=c(4,4,2,1), oma=c(1.5,1,1.5,1))
+MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
+mtext(side = 3, text = "Figura 4: Transformação Box-Cox", outer = T)
+par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1)) # Padrão
+
+plot(mFit1)
+
+pairs(dados1)
+
+pairs(dados1,
+      # upper.panel = panel.cor, 
+      diag.panel = panel.hist)
+
+
+d1 + d2 +
+  plot_layout(ncol = 2) +
+  plot_annotation(
+    # title = "Figura 2: Modelo ajustado e suas transformações",
+    # subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações da variável resposta",
+    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+    tag_sep = ".", tag_suffix = ":") &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
+
+(lambda <- bc$x[which.max(bc$y)])
 
 t1 <- dados1|>
   mutate(volume = sqrt(volume))
@@ -632,14 +730,56 @@ t3 |>
 
 ### Ajuste dos modelos ----
 #### Dispersão ----
-t1|>
+
+d1 <- dados1|>
   ggplot(aes(x = height, y = volume)) +
   geom_point(
     color = "#234B6E"
   )+
   labs(
-    title = "Modelo Ajustado entre o Volume e Altura",
-    y = 'raiz(Volume (m³))',
+    title = "Modelo Ajustado entre o Volume e à Altura",
+    y = 'Volume (m³)',
+    x = 'Altura (m)'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., ..p.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 19.2, label.y = 2, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 3)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 19.2, label.y = 1.75, 
+    position = "identity", 
+    color="red",
+    size = 3.5, show.legend = F
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    breaks = seq(0, 2.5, 0.5),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        plot.title = element_text(size = 11, face = "plain"),
+        axis.title = element_text(size = 8, face = "plain"),
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+d2 <- t1|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  labs(
+    title = "Modelo Ajustado entre a raiz[Volume (m³)] e à Altura",
+    y = expression(sqrt('Volume (m³)')),
     x = 'Altura (m)'
   )+
   ggpubr::stat_cor(
@@ -650,13 +790,13 @@ t1|>
     method = "pearson",
     label.x = 19.2, label.y = 1.375, show.legend = F,
     p.accuracy = 0.001, r.accuracy = 0.0001,
-    size = 3)+
+    size = 3.5)+
   ggpubr::stat_regline_equation(
     aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
     geom = "text", label.x = 19.2, label.y = 1.25, 
     position = "identity", 
     color="red",
-    size = 3, show.legend = F
+    size = 3.5, show.legend = F
   )+
   geom_smooth(
     method=lm, se=T, formula = "y ~ x", color = "tomato")+
@@ -669,16 +809,18 @@ t1|>
       decimal.mark = ","
     ))+
   theme(legend.position = "none",
+        plot.title = element_text(size = 11, face = "plain"),
+        axis.title = element_text(size = 8, face = "plain"),
         axis.line = element_line(size = 0.8, color = "#222222"))
 
-t2|>
+d3 <- t2|>
   ggplot(aes(x = height, y = volume)) +
   geom_point(
     color = "#234B6E"
   )+
   labs(
-    title = "Modelo Ajustado entre o Volume e Altura",
-    y = 'log(Volume (m³))',
+    title = "Modelo Ajustado entre o log[Volume (m³)] e à Altura",
+    y = 'log[Volume (m³)]',
     x = 'Altura (m)'
   )+
   ggpubr::stat_cor(
@@ -689,13 +831,13 @@ t2|>
     method = "pearson",
     label.x = 19.2, label.y = 0.7, show.legend = F,
     p.accuracy = 0.001, r.accuracy = 0.0001,
-    size = 3)+
+    size = 3.5)+
   ggpubr::stat_regline_equation(
     aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
     geom = "text", label.x = 19.2, label.y = 0.5, 
     position = "identity", 
     color="red",
-    size = 3, show.legend = F
+    size = 3.5, show.legend = F
   )+
   geom_smooth(
     method=lm, se=T, formula = "y ~ x", color = "tomato")+
@@ -708,16 +850,18 @@ t2|>
       decimal.mark = ","
     ))+
   theme(legend.position = "none",
+        plot.title = element_text(size = 11, face = "plain"),
+        axis.title = element_text(size = 8, face = "plain"),
         axis.line = element_line(size = 0.8, color = "#222222"))
 
-t3|>
+d4 <- t3|>
   ggplot(aes(x = height, y = volume)) +
   geom_point(
     color = "#234B6E"
   )+
   labs(
-    title = "Modelo Ajustado entre o Volume e Altura",
-    y = '(Volume (m³))²',
+    title = "Modelo Ajustado entre o [Volume (m³)]² e à Altura",
+    y = '[Volume (m³)]²',
     x = 'Altura (m)'
   )+
   ggpubr::stat_cor(
@@ -747,7 +891,22 @@ t3|>
       decimal.mark = ","
     ))+
   theme(legend.position = "none",
+        plot.title = element_text(size = 11, face = "plain"),
+        axis.title = element_text(size = 8, face = "plain"),
         axis.line = element_line(size = 0.8, color = "#222222"))
+
+d1 + d2 + d3 + d4 +
+  plot_layout(ncol = 2) +
+  plot_annotation(
+    title = "Figura 2: Modelo ajustado e suas transformações",
+    subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações da variável resposta",
+    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+    tag_sep = ".", tag_suffix = ":") &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
+
 
 ### Modelos Ajustados ----
 (mFitT1 <- lm(volume~height, data = t1))
