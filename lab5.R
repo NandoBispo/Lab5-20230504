@@ -1067,11 +1067,55 @@ dados2 <- read.csv2("Dados2.csv")
 dados2 <- dados2|>
   janitor::clean_names()
 
+dplyr::glimpse(dados2)
+
+dados3 <- dados2|>
+  select(-bp_2s, -bp_2d, -time_ppn, - frame)|>
+  mutate(
+    height = height*0.0254,
+    weight = weight*0.453592,
+    waist = waist*2.54,
+    hip = hip*2.54,
+    gender = forcats::as_factor(gender)
+  )
+
+dplyr::glimpse(dados3)
+
 ## Análises ----
 
 ### Dados Faltantes ----
-is.na(dados2$chol)|>
-  sum()
+# Verifica em um data set se existe ao  menos um dado faltante.
+is.na(dados2)|>
+  any()
+
+# Mostra quantos NAs tem em cada coluna.
+is.na(dados2)|>
+  colSums()
+
+is.na(dados2)|>
+  colSums()*100/nrow(dados2)|>
+  round(2)
+  
+NAS <- round(colSums(is.na(dados2))*100/nrow(dados2),2)
+NAS[NAS>0]
+
+resultados <- dados3|>
+  select(-time_ppn, - frame)|>
+  rename(
+    "Colesterol total" = chol,
+    "Glicose estabilizada" = stab_glu,
+    "Lipoproteína de alta densidade" = hdl,
+    "Razão colesterol total e colesterol bom" = ratio,
+    "Hemoglobina glicada" = glyhb,
+    "Município" = location,
+    "Idade" = age, "Sexo" = gender,
+    "Altura" = height, "Peso" = weight,
+    "Pressão sanguínea sistólica (1ª medida)" = bp_1s,
+    "Pressão sanguínea diastólica (1ª medida)" = bp_1d,
+    "Cintura" = waist, "Quadril" = hip
+  )|>
+  is.na()|>
+  colSums()*100/nrow(dados2)|> as.matrix()
 
 
 # carregando pacote
@@ -1087,10 +1131,206 @@ naniar::gg_miss_var(dados2,
   labs(x = "Variáveis",
        y = "% Dados faltantes")
 
+### Medidas Resumo ----
+summarytools::st_options(lang = "pt")
+
+# options(knitr.table.format = "latex")
+
+dados3|>
+  select(-time_ppn, - frame)|>
+  rename(
+    "Colesterol total" = chol,
+    "Glicose estabilizada" = stab_glu,
+    "Lipoproteína de alta densidade" = hdl,
+    "Razão colesterol total e colesterol bom" = ratio,
+    "Hemoglobina glicada" = glyhb,
+    "Município" = location,
+    "Idade" = age, "Sexo" = gender,
+    "Altura" = height, "Peso" = weight,
+    "Pressão sanguínea sistólica (1ª medida)" = bp_1s,
+    "Pressão sanguínea diastólica (1ª medida)" = bp_1d,
+    "Cintura" = waist, "Quadril" = hip
+  )|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+  kbl(
+    caption = "Medidas Resumo dos dados",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = T, 
+    booktabs = T
+    # col.names =
+    #   c("Min", "Q1", "Med", "Média", "Q3", "Max", "D.Padrão", "CV")
+  )|>
+  # footnote(general = "---") |>
+  # kable_material(c(
+  #   "striped", # listrado
+  #   "hover", 
+  #   "condensed"))|>
+  kable_styling(
+    full_width = F,
+    position = 'center', 
+    # latex_options = 'HOLD_position',
+    latex_options = c("striped", "HOLD_position", "scale_down")
+  )|>
+  kable_material()
+
+### Correlação ----
+
+dados3|>
+  select(-location, -gender)|>
+  cor()|>
+corrplot::corrplot(method = "circle", type = "lower")
+
+library(GGally)
+
+dados3|>
+  select(-location, -gender)|>
+  ggpairs(lower = list(continuous = "smooth"))
+
+
+GGally::ggcorr(dados3, label=T)
+
+install.packages("corrgram")
+library(corrgram)
+
+corrgram::corrgram(dados3)
+
+corrgram::corrgram(dados3, lower.panel = panel.pts, upper.panel= panel.conf, diag.panel = panel.density)
+
+
+### Dispersão ----
+dados3|>
+  ggplot(aes(x = chol, y = weight)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  labs(
+    title = "Peso vs. Colesterol Total",
+    y = 'Peso (kg)',
+    x = 'Colesterol Total'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., ..p.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 300, label.y = 150, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 3.5)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 300, label.y = 130, 
+    position = "identity", 
+    color="red",
+    size = 3.5, show.legend = F
+  )+
+  theme_minimal()+
+  # scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    # breaks = seq(0, 2.5, 0.5),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+dados3|>
+  ggplot(aes(x = stab_glu, y = weight)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  labs(
+    title = "Peso vs. Glicose Estabilizada ",
+    y = 'Peso (kg)',
+    x = 'Glicose Estabilizada '
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., ..p.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 250, label.y = 60, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 3.5)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 250, label.y = 50, 
+    position = "identity", 
+    color="red",
+    size = 3.5, show.legend = F
+  )+
+  theme_minimal()+
+  # scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    # breaks = seq(0, 2.5, 0.5),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        axis.line = element_line(size = 0.8, color = "#222222"))
+
+dados3|>
+  ggplot(aes(x = stab_glu, y = weight)) +
+  geom_point(
+    color = "#234B6E"
+  )+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  labs(
+    title = "Peso vs. Lipoproteína de Alta Densidade (Colesterol Bom)",
+    y = 'Peso (kg)',
+    x = 'HDL'
+  )+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., ..p.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red",
+    method = "pearson",
+    label.x = 250, label.y = 60, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 3.5)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 250, label.y = 50, 
+    position = "identity", 
+    color="red",
+    size = 3.5, show.legend = F
+  )+
+  theme_minimal()+
+  # scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    # breaks = seq(0, 2.5, 0.5),
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  theme(legend.position = "none",
+        axis.line = element_line(size = 0.8, color = "#222222"))
 
 
 
 
+
+
+
+
+
+# FIM ----
 
 
 

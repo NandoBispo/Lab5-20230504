@@ -987,6 +987,17 @@ dados2 <- read.csv2("Dados2.csv")
 ### Arrumação ----
 dados2 <- dados2|>
   janitor::clean_names()
+
+dados3 <- dados2|>
+  select(-bp_2s, -bp_2d, -time_ppn, - frame)|>
+  mutate(
+    height = height*0.0254,
+    weight = weight*0.453592,
+    waist = waist*2.54,
+    hip = hip*2.54
+  )
+
+
 ```
 
 
@@ -994,21 +1005,20 @@ dados2 <- dados2|>
 
 O segundo conjunto de dados a ser analisado, contém informações de 403 afro-americanos residentes no Estado da Virginia (EUA), entrevistados em um estudo referente à prevalência de obesidade, diabetes e outros fatores de risco cardiovasculares. As características apresentadas são:
 
-- Número de identificação do sujeito;
 - Colesterol total;
 - Glicose estabilizada;
-- Lipoproteína de alta densidade (colesterol bom) (hdl);
-- Razão colesterol total e colesterol bom (chol/hdl);
-- Hemoglobina glicada (glyhb);
+- Lipoproteína de alta densidade (colesterol bom);
+- Razão colesterol total e colesterol bom;
+- Hemoglobina glicada;
 - Município de residência (Buckingham ou Louisa);
-- Idade em anos;
+- Idade (em anos);
 - Sexo;
 - Altura (em polegadas);
 - Peso (em libras);
-- Pressão sanguínea sistólica (1ª medida) (bp.1s);
-- Pressão sanguínea diastólica (1ª medida) (bp.1d);
-- pressão sanguínea sistólica (2ª medida) (bp.2s);
-- Pressão sanguínea diastólica (2ª medida) (bp.2d);
+- Pressão sanguínea sistólica (1ª medida);
+- Pressão sanguínea diastólica (1ª medida);
+- Pressão sanguínea sistólica (2ª medida);
+- Pressão sanguínea diastólica (2ª medida);
 - Cintura (em polegadas);
 - Quadril (em polegadas). 
 
@@ -1022,7 +1032,60 @@ Com base nestes dados se desenvolverá:
 
 ## Resultados
 
+### Análise descritiva dos dados
 
+Numa primeira análise do conjunto de dados se constatou que as características **Pressão sanguínea sistólica (2ª medida)** e **Pressão sanguínea diastólica (2ª medida)** possuem uma quantidade muito grande de dados ausentes, cerca de 65% de ausência de dados, ou seja, das 403 observações coletadas, 262 estão ausentes para estas características, diante desta grande falta de dados essas características serão descartadas.
+
+Se constatou também que as observações das características **altura, peso, cintura** e **quadril** estão representadas em unidades de medidas diferentes das praticadas no Brasil, sendo necessária a conversão das métricas estrangeiras para as métricas nacionais, a fim de facilitar a interoperabilidade para a nossa realidade cotidiana.
+Para tanto as características que possuem medidas originais em **polegadas (in), libras (lb), polegadas (in) e polegadas (in)** respectivamente, foram convertidas para **metro (m), quilograma (kg), centímetro (cm) e centímetro (cm)** respectivamente.
+
+Sendo parte primordial para qualquer estudo, a fase exploratória dos dados está representada inicialmente na Tabela 7 com a sumarização das características em análise.
+
+
+```{r tab1:MedRes}
+#| echo: false
+#| warning: false
+
+dados3|>
+  # select(-time_ppn, - frame)|>
+  rename(
+    "Colesterol total" = chol,
+    "Glicose estabilizada" = stab_glu,
+    "Lipoproteína de alta densidade" = hdl,
+    "Razão colesterol total e colesterol bom" = ratio,
+    "Hemoglobina glicada" = glyhb,
+    "Município" = location,
+    "Idade" = age, "Sexo" = gender,
+    "Altura" = height, "Peso" = weight,
+    "Pressão sanguínea sistólica (1ª medida)" = bp_1s,
+    "Pressão sanguínea diastólica (1ª medida)" = bp_1d,
+    "Cintura" = waist, "Quadril" = hip
+  )|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+  kbl(
+    caption = "Medidas Resumo dos dados",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", 
+    row.names = T, 
+    booktabs = T
+  )|>
+  column_spec(1, bold = T)|>
+  kable_styling(
+    full_width = F,
+    position = 'center', 
+    latex_options = c("striped", "HOLD_position", "scale_down")
+  )|>
+  kable_material()
+```
+
+
+Com base na proposta da coleta de dados, a característica que apresenta melhor adequação para ser a variável resposta de um modelo de regressão é o **peso**, logo será feita a avaliação dessa característica com as demais a fim de se identificar possíveis correlações.
 
 
 
