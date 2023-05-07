@@ -88,7 +88,7 @@ O primeiro conjunto de dados a ser analisado é denominado *trees*, disponível 
 
 Para esta atividade **serão considerados apenas as informações referentes ao volume e altura das árvores**. Com base nestes dados se desenvolverá:
 
-(a) Ajuste um modelo linear simples para volume como função da altura da árvore;
+(a) Ajuste de modelo linear simples para volume como função da altura da árvore;
 (b) Avalação gráfica dos resíduos Jacknife para diagnóstico do modelo ajustado;
 (c) Transformações da característrica utilizada como variável resposta do modelo;
 (d) Avaliação da transformação mais apropriada dentro da família proposta por Box e
@@ -236,7 +236,7 @@ fit_anova|>
     format.args=list(big.mark=".", decimal.mark=","),
     digits = 3, align = "c", row.names = T, 
     booktabs = T, escape = F,
-    col.names = c("GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+    col.names = c("$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
   )|>
   kable_styling(
     full_width = F, position = 'center', 
@@ -253,7 +253,7 @@ fit_anova|>
 
 
 resultados <- cbind(confint(mFit1))
-rownames(resultados) <- c("Beta 0", "Beta 1")
+rownames(resultados) <- c("$\\hat \\beta_0$", "$\\hat \\beta_1$")
 
 resultados|>
   kbl(
@@ -261,7 +261,7 @@ resultados|>
     format.args=list(big.mark=".", decimal.mark=","),
     digits = 3, align = "c", row.names = T, booktabs = T,
     escape = F,
-    col.names = c("LI", "LS")
+    col.names = c("$LI^1$", "$LS^2$")
   )|>
   kable_styling(
     full_width = F, position = 'center', 
