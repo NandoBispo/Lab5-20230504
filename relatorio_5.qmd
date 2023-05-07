@@ -116,7 +116,7 @@ dados1|>
     color = "#234B6E"
     )+
   labs(
-    title = "Modelo Ajustado entre Volume e Altura",
+    title = "Figura 1: Modelo Ajustado entre Volume e Altura",
     subtitle = "Diagrama de dispersão com equação da reta de regressão ajustada, \nCoeficiente de Correlação de Pearson, Coeficiente de Determinação, Coeficiente de \nDeterminação Ajustado, Reta de Regressão e Intervalo de Confiança",
     y = 'Volume (m³)',
     x = 'Altura (m)'
@@ -210,7 +210,7 @@ $$H_1: \hat{\beta_1} \neq 0.$$
 As Tabelas 4 e 5 trazem os principais resultados da tabela ANOVA e do Intervalo de Confiança para os parâmetros, possibilitando assim inferir sobre o modelo ajustado.
 
 
-```{r}
+```{r teste_diag_trans}
 #| echo: false
 #| warning: false
 
@@ -517,6 +517,27 @@ A Tabela 4 traz os testes de diagnósticos realizados para avaliar o modelo de r
 
 ### Transformações dos Dados
 
+Para esta análise a característica em estudo (Volume) será muitas vezes representada pela letra Y para melhor representação.
+
+```{r ajuste_mod_trans}
+#| echo: false
+#| warning: false
+
+t1 <- dados1|>
+  mutate(volume = sqrt(volume))
+
+t2 <- dados1|>
+  mutate(volume = log(volume))
+
+t3 <- dados1|>
+  mutate(volume = volume^2)
+
+mFitT1 <- lm(volume~height, data = t1)
+mFitT2 <- lm(volume~height, data = t2)
+mFitT3 <- lm(volume~height, data = t3)
+```
+
+
 Tendo em vista que o modelo não atendeu aos pressupostos se faz necessário a utilização de técnicas para buscar uma melhora de performace do modelo antes da possibilidade de descarte e para tanto algumas transformações são sugeridas, sendo estas:
 
 - $T_1 = \sqrt{Y}$;
@@ -583,8 +604,6 @@ $$ \hat{Y_i}^2 = -5,9 + 0,3X_i$$
 
 
 A Figura 3 traz os diagramas de dispersão com a reta ajustada para o modelo sem transformação e para cada transformação realizada, a fim de possibilitar a identificação das diferenças entre cada modelo.
-
-
 
 
 ```{r fig3:transform}
@@ -762,7 +781,7 @@ d1 + d2 + d3 + d4 +
   plot_layout(ncol = 2) +
   plot_annotation(
     title = "Figura 3: Modelo ajustado e suas transformações",
-    subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações \nda variável resposta",
+    subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações \nda variável resposta.",
     tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
     tag_sep = ".", tag_suffix = ":") &
   theme(
@@ -774,7 +793,162 @@ d1 + d2 + d3 + d4 +
 ```
 
 
-```{r fig4:box-cox}
+
+
+```{r fig4:residuos_transform}
+#| echo: false
+#| warning: false
+#| fig-width: 7
+#| fig-height: 6
+
+### Residuos ----
+
+mFitT1_resid <- broom::augment(mFitT1)
+mFitT2_resid <- broom::augment(mFitT2)
+mFitT3_resid <- broom::augment(mFitT3)
+
+d1 <- mFitT1_resid %>% 
+  ggplot(aes(x = .fitted, y = rstudent(mFitT1))) + 
+  geom_point(color = "#234B6E") +
+  geom_hline(aes(yintercept = 0), col="tomato")+
+  labs(
+    x = "Valores Ajustado",
+    y = "Resíduos Estudentizados",
+    title = expression(sqrt("Volume (m³)")))+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "plain"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.5, color = "#222222"))
+
+d2 <- mFitT2_resid %>% 
+  ggplot(aes(x = .fitted, y = rstudent(mFitT2))) + 
+  geom_point(color = "#234B6E") +
+  geom_hline(aes(yintercept = 0), col="tomato")+
+  labs(
+    x = "Valores Ajustado",
+    y = "Resíduos Estudentizados",
+    title = expression(log("Volume (m³)")))+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "plain"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.5, color = "#222222"))
+
+d3 <- mFitT3_resid %>% 
+  ggplot(aes(x = .fitted, y = rstudent(mFitT3))) + 
+  geom_point(color = "#234B6E") +
+  geom_hline(aes(yintercept = 0), col="tomato")+
+  labs(
+    x = "Valores Ajustado",
+    y = "Resíduos Estudentizados",
+    title = "Volume²")+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "plain"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.5, color = "#222222"))
+
+d1 + d2 + d3 +
+  plot_layout(ncol = 2) +
+  plot_annotation(
+    title = "Figura 4: Gráficos dos Resíduos Estudentizados vs. Valores Ajustados \ndas características transformadas.",
+    # subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações da variável resposta",
+    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+    tag_sep = ".", tag_suffix = ":") &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
+
+
+```
+
+
+A Figura 5 traz os gráficos comparativos dos resíduos estudentizados (*Jacknife*) versus os valores ajustados das variáveis transformadas, sendo possível constatar que houve uma aparente melhora na variabilidade nas Sub.Figs. A e B, contudo houve uma maior evidenciação do ponto atípico na Sub.Fig C, sendo este influente o suficiente para interferir a variabilidade total deste modelo, sendo descartado este modelo transformado pela quebra do pressuposto da homogeneidade de variâncias.
+Dentre os modelos sob a transformação $\sqrt{Y}$ e $log(Y)$, a figura que traz o comparativo dos resíduos sob a transformação $log(Y)$ (Sub.Fig. B) apresenta uma maior homogeneidade de variância, sendo o modelo mais adequado dentre os modelos transformados.
+
+Como forma de confirmar a avaliação feita sobre a analise gráfica, foi construída a Tabela 6 com os testes de diagnósticos dos resíduos do modelo sob a transformação $log(Y)$.
+
+
+```{r tab6:diag_test_trans}
+#| echo: false
+#| warning: false
+
+resT2 <- residuals(mFitT2)
+
+t_sw_t2 <- shapiro.test(resT2)
+
+t_bp_T2 <- lmtest::bptest(mFitT2, studentize = F)
+
+t_dw_T2 <- lmtest::dwtest(mFitT2)
+
+resultados <- rbind(
+  t_sw_t2$statistic,
+  t_bp_T2$statistic,
+  t_dw_T2$statistic)
+
+aux <- rbind(
+  t_sw_t2$p.value,
+  t_bp_T2$p.value,
+  t_dw_T2$p.value)
+
+resultados <- cbind(resultados, aux)
+
+rownames(resultados) <- c("Shapiro-Wilks", "Breush-Pagan", "Durbin-Watson")
+
+colnames(resultados) <- c("Estatística de teste", "p-valor")
+
+resultados|>
+  kbl(
+    caption = "Testes de Diagnósticos dos Resíduos após transformação log(Y)",
+    digits = 5,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", row.names = T, booktabs = T
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = T)|>
+  kable_material()
+```
+
+
+A Tabela 6 traz os testes de diagnóstico para a o modelo após a transformação da variável resposta, sendo possível constatar que após a transformação o novo modelo não rejeita a hipótese nula ($H_0$) para o teste de homogeneidade de variância, corroborando com a análise gráfica, contudo, os demais testes não foram bem sucedidos.
+
+Tendo em vista não ser a tarefa mais simples a aplicação de diversas transformações e os devidos testes para avaliar o melhor possível modelo a ser utilizado, que minimize a variância residual, a opção mais adequada é a escolha do modelo baseado na família de transformações de Box-Cox, definida por:
+
+
+$$Y(\lambda) = \begin{cases} \dfrac{Y^{\lambda} - 1}{\lambda}, \text{ se } \lambda \neq 0 \\ log(Y), \text{ se } \lambda = 0 \end{cases}$$
+
+sendo $\lambda$ o parâmetro da transformação.
+
+Para tanto a Figura 5 foi construída com base na função de $\lambda$ para a escolha da transformação apropriada.
+
+
+```{r fig5:box-cox}
 #| echo: false
 #| warning: false
 #| fig-width: 7
@@ -782,21 +956,23 @@ d1 + d2 + d3 + d4 +
 
 par(mfrow = c(1, 1), mar=c(4,4,2,1), oma=c(1.5,1,1.5,1))
 bc <- MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
-mtext(side = 3, text = "Figura 4: Transformação Box-Cox", outer = T)
+mtext(side = 3, text = "Figura 5: Transformação Box-Cox", outer = T)
 par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1))
 
 lambda <- bc$x[which.max(bc$y)]
 ```
 
-Analisando o gráfico das **famílias de transformações Box-Cox** é possível identificar que $-0,5 < \lambda_{max} < 0$ ($\lambda_{max}\approx$ `r scales::number(lambda, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`), partindo do princípio que o valor zero está incluso no intervalo de valores possíveis de $\lambda$ que minimizam a variância residual, mesmo o zero não sendo o máximo valor assumido, ainda assim, visando a escolha de uma transformação que possibilite uma interpretação facilitada, a escolha da transformação $log(Y)$ torna-se a escolha mais assertiva. Para avaliar esta situação a Figura 3 foi construída.
+Analisando o gráfico das **famílias de transformações Box-Cox** é possível identificar que $-0,5 < \lambda_{max} < 0$ ($\lambda_{max}\approx$ `r scales::number(lambda, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`), partindo do princípio que o valor zero está incluso no intervalo de valores possíveis de $\lambda$ que minimizam a variância residual, mesmo o zero não sendo o máximo valor assumido, ainda assim, visando a escolha de uma transformação que possibilite uma interpretação facilitada, **a escolha da transformação $log(Y)$ torna-se a escolha mais assertiva**, conforme conclusão anteriormente feita baseado na análise gráfica.
 
 
-
-Com base nos valores do Coeficiente de Determinação $R^2$ dos gráficos contidos da Figura 3, é possível constatar que o gráfico cuja transformação $log(Y)$ foi aplicada apresentou uma melhora no que diz respeito a possibilidade do modelo explicar a variabilidade dos dados, mesmo não sendo um valor considerado satisfatório, ainda assim é possível constatar a melhora de performance ao aplicar a transformação na característica utilizada como variável resposta.
+<!-- Com base nos valores do Coeficiente de Determinação $R^2$ dos gráficos contidos da Figura 3, é possível constatar que o gráfico cuja transformação $log(Y)$ foi aplicada apresentou uma melhora no que diz respeito a possibilidade do modelo explicar a variabilidade dos dados, mesmo não sendo um valor considerado satisfatório, ainda assim é possível constatar a melhora de performance ao aplicar a transformação na característica utilizada como variável resposta. -->
 
 ## Conclusão
 
-Após as análises realizadas no modelo ajustado é possível afirmar que para cada aumento de um metro na atura da árvore, há uma redução média de $exp(-4,4)$ m³ no volume ou aproximadamente `r scales::number(exp(-4.4), accuracy = 0.001, big.mark = ".", decimal.mark = ",")` m³.
+Após as análises realizadas sobre modelo ajustado foi possível constatar uma melhora no desempenho do modelo, quanto a variabilidade dos dados, após a transformação da variável resposta para a transformação $log(Y)$, fato constatado através da Figura 3 por meio do valor do Coeficiente de Determinação $R^2$ bem como através da análise da Figura 4, por meio dos resíduos.
+
+Apesar de não se ter conseguido um modelo que preenchesse todos os pressupostos, ainda assim, na possibilidade desse modelo ter sido satisfatório, poder-se-ia interpretar a sua utilização da seguinte forma:
+Para cada aumento de um metro na altura da árvore, há uma redução média de $exp(-4,4)$ m³ no volume ou aproximadamente `r scales::number(exp(-4.4), accuracy = 0.001, big.mark = ".", decimal.mark = ",")` m³.
 
 
 # Parte 2: Regressão Linear Múltipla - Estimação pontual

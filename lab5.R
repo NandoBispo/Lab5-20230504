@@ -912,19 +912,19 @@ mFitT1_resid <- broom::augment(mFitT1)
 mFitT2_resid <- broom::augment(mFitT2)
 mFitT3_resid <- broom::augment(mFitT3)
 
-mFitT1_resid %>% 
-  ggplot(aes(x = .fitted, y = rstudent(mFit1))) + 
+d1 <- mFitT1_resid %>% 
+  ggplot(aes(x = .fitted, y = rstudent(mFitT1))) + 
   geom_point(color = "#234B6E") +
   geom_hline(aes(yintercept = 0), col="tomato")+
   labs(
     x = "Valores Ajustado",
     y = "Resíduos Estudentizados",
-    title = "Resíduos Estudentizados vs. Valores Ajustados")+
+    title = expression(sqrt("Volume (m³)")))+
   scale_x_continuous(
     labels = scales::number_format(
       big.mark = ".", decimal.mark = ","))+
   scale_y_continuous(
-    breaks = seq(from = -3, to = 4, by = 1),
+    # breaks = seq(from = -3, to = 4, by = 1),
     labels = scales::number_format(
       big.mark = ".", decimal.mark = ","))+
   theme_minimal()+
@@ -934,10 +934,120 @@ mFitT1_resid %>%
     axis.title = element_text(size = 8, face = "plain"),
     axis.line = element_line(size = 0.5, color = "#222222"))
 
+d2 <- mFitT2_resid %>% 
+  ggplot(aes(x = .fitted, y = rstudent(mFitT2))) + 
+  geom_point(color = "#234B6E") +
+  geom_hline(aes(yintercept = 0), col="tomato")+
+  labs(
+    x = "Valores Ajustado",
+    y = "Resíduos Estudentizados",
+    title = expression(log("Volume (m³)")))+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    # breaks = seq(from = -3, to = 4, by = 1),
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "plain"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.5, color = "#222222"))
+
+d3 <- mFitT3_resid %>% 
+  ggplot(aes(x = .fitted, y = rstudent(mFitT3))) + 
+  geom_point(color = "#234B6E") +
+  geom_hline(aes(yintercept = 0), col="tomato")+
+  labs(
+    x = "Valores Ajustado",
+    y = "Resíduos Estudentizados",
+    title = "Volume²")+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    # breaks = seq(from = -3, to = 4, by = 1),
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "plain"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.5, color = "#222222"))
+
+d1 + d2 + d3 +
+  plot_layout(ncol = 2) +
+  plot_annotation(
+    title = "Figura 4: Gráficos dos Resíduos Estudentizados vs.
+Valores Ajustados das características transformadas.",
+    # subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações da variável resposta",
+    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+    tag_sep = ".", tag_suffix = ":") &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
+
+#### Testes ----
+
+resT2 <- residuals(mFitT2)
+
+ks.test(resT2, "pnorm", mean(resT2), sd(resT2))
+
+# SW*
+(t_sw_t2 <- shapiro.test(resT2))
+
+##### Teste de homoscedasticidade dos resíduos ----
+#H0: resíduos homoscedásticos - Variância constante
+#H1: resíduos heteroscedásticos - Variância NÃO constante
+
+# BP*
+(t_bp_T2 <- lmtest::bptest(mFitT2, studentize = F))
+
+lmtest::bptest(mFitT2, studentize = T) # Teste
+
+# Teste deF para linearidade
 
 
+# Teste de correlação serial lag 1 (Independência dos erros)
+#H0: correlacionados - existe correlação serial
+#H1: não correlacionados - não existe correlação serial ///ficou confuso no vídeo as hipoteses///
 
+# DW
+(t_dw_T2 <- lmtest::dwtest(mFitT2))
 
+resultados <- rbind(
+  t_sw_t2$statistic,
+  t_bp_T2$statistic,
+  t_dw_T2$statistic)
+
+aux <- rbind(
+  t_sw_t2$p.value,
+  t_bp_T2$p.value,
+  t_dw_T2$p.value)
+
+resultados <- cbind(resultados, aux)
+
+rownames(resultados) <- c("Shapiro-Wilks", "Breush-Pagan", "Durbin-Watson")
+
+colnames(resultados) <- c("Estatística de teste", "p-valor")
+
+resultados|>
+  kbl(
+    caption = "Testes de Diagnósticos dos Resíduos",
+    digits = 5,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", row.names = T, booktabs = T
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  column_spec(1, bold = T)|>
+  kable_material()
 
 
 
