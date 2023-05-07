@@ -994,7 +994,8 @@ dados3 <- dados2|>
     height = height*0.0254,
     weight = weight*0.453592,
     waist = waist*2.54,
-    hip = hip*2.54
+    hip = hip*2.54,
+    gender = forcats::as_factor(gender)
   )
 
 

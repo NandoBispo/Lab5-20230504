@@ -1193,6 +1193,11 @@ dados3|>
   select(-location, -gender)|>
   ggpairs(lower = list(continuous = "smooth"))
 
+dados4 <- dados3|>
+  select(-gender, -location)
+
+  ggpairs(dados4)
+
 
 GGally::ggcorr(dados3, label=T)
 
@@ -1323,10 +1328,71 @@ dados3|>
         axis.line = element_line(size = 0.8, color = "#222222"))
 
 
+### Ajuste do modelo ----
+
+lm(weight ~  ., data = dados3)
+
+(mFit2 <- lm(weight ~  chol + stab_glu + hdl + ratio + glyhb + age + height + bp_1s + bp_1d + waist + hip, data = dados3))
 
 
 
 
+
+
+
+
+
+### Significância ----
+anova(mFit2)
+
+tidy(mFit2)|>
+  kbl()
+
+fit_anova2 <- anova(mFit2)|>
+  as.data.frame() # Convertendo em data frame que possibilita converter uma coluna em caractere.
+
+fit_anova|> is.na() # Verificando a existência de NAs
+
+glimpse(fit_anova)
+
+fit_anova <- fit_anova|>
+  mutate(
+    `F value` = 
+      scales::number(`F value`, accuracy = 0.0001, 
+                     big.mark = ".", decimal.mark = ","),
+    `Pr(>F)` = 
+      scales::number(`Pr(>F)`, accuracy = 0.0001, 
+                     big.mark = ".", decimal.mark = ","))
+
+fit_anova[is.na(fit_anova)] <- "" # Remove os NAs e converte as colunas em caracteres.
+
+glimpse(fit_anova)
+
+rownames(fit_anova) <- c("Regressão", "Resíduos")
+
+# Criando a tabela
+fit_anova|>
+  kbl(
+    caption = "Análise de Variância (ANOVA).",
+    format.args=list(big.mark=".", decimal.mark=","),
+    digits = 3, align = "c", row.names = T, booktabs = T,
+    escape = F,
+    col.names = c("GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  footnote(
+    number = c("GL: Graus de Liberdade"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
+  )|>
+  column_spec(1, bold = T)|>
+  # column_spec(5, color = ifelse(fit_anova$`F value` == 0, "red", "black"))|>
+  # column_spec(6, ifelse(fit_anova$`Pr(>F)` == 0, 3, fit_anova$`Pr(>F)`))|>
+  # add_header_above(c(" " = 1, "ANOVA" = 5, "Intervalos de Confiança" = 2))|>
+  kable_material()
 
 
 
