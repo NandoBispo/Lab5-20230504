@@ -988,6 +988,7 @@ dados2 <- read.csv2("Dados2.csv")
 dados2 <- dados2|>
   janitor::clean_names()
 
+# Transformando as variaveis e mudando as unidades de medida.
 dados3 <- dados2|>
   select(-bp_2s, -bp_2d, -time_ppn, - frame)|>
   mutate(
@@ -997,6 +998,13 @@ dados3 <- dados2|>
     hip = hip*2.54,
     gender = forcats::as_factor(gender)
   )
+
+# Removendo variaveis categóricas e linhas contendo NAs
+dados4 <- dados3|>
+  select(-gender, -location)
+
+dados4 <- dados4|>stats::na.omit()
+
 
 
 ```
@@ -1087,6 +1095,173 @@ dados3|>
 
 
 Com base na proposta da coleta de dados, a característica que apresenta melhor adequação para ser a variável resposta de um modelo de regressão é o **peso**, logo será feita a avaliação dessa característica com as demais a fim de se identificar possíveis correlações.
+
+
+```{r ajuste_mod}
+#| echo: false
+#| warning: false
+
+
+### Ajuste do modelo ----
+
+# Sem remoção de NAs
+mFit3.0cna <- lm(weight ~  chol + stab_glu + hdl + ratio + glyhb + age + height + bp_1s + bp_1d + waist + hip, data = dados3)
+
+mFit3.1cna <- lm(weight ~  chol + stab_glu + hdl + age + height + bp_1s + bp_1d + waist + hip, data = dados3)
+
+# Com remoção de NAs
+mFit4.0sna <- lm(weight ~  chol + stab_glu + hdl + ratio + glyhb + age + height + bp_1s + bp_1d + waist + hip, data = dados4)
+
+mFit4.1sna <- lm(weight ~  chol + stab_glu + hdl + age + height + bp_1s + bp_1d + waist + hip, data = dados4)
+
+
+```
+
+
+
+```{r tab:model_sig_com_nas}
+#| echo: false
+#| warning: false
+
+
+# Modelo completo
+fit_anova3_cna <- broom::tidy(anova(mFit3.0cna))
+
+fit_anova3_cna<- fit_anova3_cna|>
+  mutate(
+    sumsq = scales::number(
+      sumsq, accuracy = 0.0010,
+      big.mark = ".", decimal.mark = ","),
+    meansq = scales::number(
+      meansq, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    statistic = scales::number(
+      statistic, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    p.value = scales::number(
+      p.value, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","))
+
+fit_anova3_cna[is.na(fit_anova3_cna)] <- ""
+
+fit_anova3_cna$term <- c("Colesterol total", "Glicose estabilizada",
+                     "Lipoproteína de alta densidade", 
+                     "Razão colesterol total e colesterol bom", 
+                     "Hemoglobina glicada", "Idade" , "Altura", 
+                     "Pressão sanguínea sistólica (1ª medida)", 
+                     "Pressão sanguínea diastólica (1ª medida)", 
+                     "Cintura",  "Quadril", "Resíduos")
+
+# Criação da tabela
+fit_anova3_cna|>
+  kableExtra::kbl(
+    caption = "Análise de Variância (ANOVA).",
+    format.args=list(big.mark=".", decimal.mark=","),
+    digits = 3, align = c("l", "c", "c", "c", "c", "c"), 
+    row.names = F, booktabs = T, escape = F,
+    col.names = c("", "GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header", "scale_down")
+  )|>
+  footnote(
+    number = c("GL: Graus de Liberdade"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
+  )|>
+  column_spec(1, bold = T)|>
+  kable_material()
+```
+
+
+```{r tab:model_sig_sem_nas}
+#| echo: false
+#| warning: false
+
+# Modelo incompleto
+fit_anova4_sna<- broom::tidy(anova(mFit4.0sna))
+
+fit_anova4_sna<- fit_anova4_sna|>
+  mutate(
+    sumsq = scales::number(
+      sumsq, accuracy = 0.0010,
+      big.mark = ".", decimal.mark = ","),
+    meansq = scales::number(
+      meansq, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    statistic = scales::number(
+      statistic, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    p.value = scales::number(
+      p.value, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","))
+
+fit_anova4_sna[is.na(fit_anova4_sna)] <- ""
+
+fit_anova4_sna$term <- c("Colesterol total", "Glicose estabilizada",
+                     "Lipoproteína de alta densidade", 
+                     "Razão colesterol total e colesterol bom", 
+                     "Hemoglobina glicada", "Idade" , "Altura", 
+                     "Pressão sanguínea sistólica (1ª medida)", 
+                     "Pressão sanguínea diastólica (1ª medida)", 
+                     "Cintura",  "Quadril", "Resíduos")
+
+
+fit_anova4_sna|>
+  kableExtra::kbl(
+    caption = "Análise de Variância (ANOVA).",
+    format.args=list(big.mark=".", decimal.mark=","),
+    digits = 3, align = c("l", "c", "c", "c", "c", "c"), 
+    row.names = F, booktabs = T, escape = F,
+    col.names = c("", "GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header", "scale_down")
+  )|>
+  footnote(
+    number = c("GL: Graus de Liberdade"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
+  )|>
+  column_spec(1, bold = T)|>
+  kable_material()
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+```
+
+
+
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+```
+
+
+
+
+
+
+
+
 
 
 

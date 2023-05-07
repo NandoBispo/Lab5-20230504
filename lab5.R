@@ -83,7 +83,7 @@ cor(dados1$volume, dados1$height)
 
 corrplot::corrplot(cor(dados1), method = "number", type = "lower")
 
-#### Significância da Correlação ----
+#### CorrSig - Significância da Correlação ----
 
 (cortest1 <- cor.test(dados1$volume, dados1$height))
 
@@ -160,12 +160,13 @@ dados1|>
   
 (mFit1 <- lm(volume~height, data = dados1))
   
-### Significância ----
+### ModelSig - Significância do Modelo ----
 
 # Através da ANOVA é possível avaliar a significância do modelo
   # H0: Beta_1 = 0
   # H1: Beta1 =/ 0
 
+#### Forma 1 ----
 fit_anova <- anova(mFit1)|>
   as.data.frame() # Convertendo em data frame que possibilita converter uma coluna em caractere.
 
@@ -212,6 +213,45 @@ fit_anova|>
   # add_header_above(c(" " = 1, "ANOVA" = 5, "Intervalos de Confiança" = 2))|>
   kable_material()
 # scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")
+
+#### Forma 2 (tidy) ----
+
+fit_anova1 <- broom::tidy(anova(mFit1))
+
+# Modifica a escala numérica
+fit_anova1 <- fit_anova1|>
+  mutate(
+    statistic = scales::number(
+      statistic, accuracy = 0.001,
+      big.mark = ".", decimal.mark = ","),
+    p.value = scales::number(
+      p.value, accuracy = 0.001,
+      big.mark = ".", decimal.mark = ","))
+
+fit_anova1[is.na(fit_anova1)] <- "" # Remove os NAs e transforma a coluna em caractere
+
+fit_anova1$term <- c("Regressão", "Resíduos") # Modifica os nomes das linhas
+
+# Gera a tabela final
+fit_anova1|>
+  kbl(
+    caption = "Análise de Variância (ANOVA).",
+    format.args=list(big.mark=".", decimal.mark=","),
+    digits = 3, align = "c", row.names = F, booktabs = T,
+    escape = F,
+    col.names = c("", "GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  footnote(
+    number = c("GL: Graus de Liberdade"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
+  )|>
+  column_spec(1, bold = T)|>
+  kable_material()
 
 # fit_sumario <- summary(mLstat)
 # ic_parametros <- confint(mLstat)
@@ -1081,6 +1121,11 @@ dados3 <- dados2|>
 
 dplyr::glimpse(dados3)
 
+
+dados4 <- dados3|>
+  select(-gender, -location)
+
+dados4 <- dados4|>stats::na.omit()
 ## Análises ----
 
 ### Dados Faltantes ----
@@ -1192,9 +1237,6 @@ library(GGally)
 dados3|>
   select(-location, -gender)|>
   ggpairs(lower = list(continuous = "smooth"))
-
-dados4 <- dados3|>
-  select(-gender, -location)
 
   ggpairs(dados4)
 
@@ -1330,54 +1372,62 @@ dados3|>
 
 ### Ajuste do modelo ----
 
+# Sem remoção de NAs
 lm(weight ~  ., data = dados3)
 
 (mFit2 <- lm(weight ~  chol + stab_glu + hdl + ratio + glyhb + age + height + bp_1s + bp_1d + waist + hip, data = dados3))
 
+(mFit3 <- lm(weight ~  chol + stab_glu + hdl + age + height + bp_1s + bp_1d + waist + hip, data = dados3))
+
+anova(mFit2, mFit3)
+
+# Com remoção de NAs
+(mFit2 <- lm(weight ~  chol + stab_glu + hdl + ratio + glyhb + age + height + bp_1s + bp_1d + waist + hip, data = dados4))
+
+(mFit3 <- lm(weight ~  chol + stab_glu + hdl + age + height + bp_1s + bp_1d + waist + hip, data = dados4))
+
+anova(mFit2, mFit3)
 
 
 
-
-
-
-
-
-### Significância ----
+### ModelSig - Significância ----
 anova(mFit2)
 
-tidy(mFit2)|>
-  kbl()
+fit_anova2 <- broom::tidy(anova(mFit2))
 
-fit_anova2 <- anova(mFit2)|>
-  as.data.frame() # Convertendo em data frame que possibilita converter uma coluna em caractere.
-
-fit_anova|> is.na() # Verificando a existência de NAs
-
-glimpse(fit_anova)
-
-fit_anova <- fit_anova|>
+fit_anova2 <- fit_anova2|>
   mutate(
-    `F value` = 
-      scales::number(`F value`, accuracy = 0.0001, 
-                     big.mark = ".", decimal.mark = ","),
-    `Pr(>F)` = 
-      scales::number(`Pr(>F)`, accuracy = 0.0001, 
-                     big.mark = ".", decimal.mark = ","))
+    sumsq = scales::number(
+      sumsq, accuracy = 0.0010,
+      big.mark = ".", decimal.mark = ","),
+    meansq = scales::number(
+      meansq, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    statistic = scales::number(
+      statistic, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    p.value = scales::number(
+      p.value, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","))
 
-fit_anova[is.na(fit_anova)] <- "" # Remove os NAs e converte as colunas em caracteres.
+fit_anova2[is.na(fit_anova2)] <- ""
 
-glimpse(fit_anova)
+fit_anova2$term <- c("Colesterol total", "Glicose estabilizada",
+                     "Lipoproteína de alta densidade", 
+                     "Razão colesterol total e colesterol bom", 
+                     "Hemoglobina glicada", "Idade" , "Altura", 
+                     "Pressão sanguínea sistólica (1ª medida)", 
+                     "Pressão sanguínea diastólica (1ª medida)", 
+                     "Cintura",  "Quadril", "Resíduos")
 
-rownames(fit_anova) <- c("Regressão", "Resíduos")
 
-# Criando a tabela
-fit_anova|>
-  kbl(
+fit_anova2|>
+  kableExtra::kbl(
     caption = "Análise de Variância (ANOVA).",
     format.args=list(big.mark=".", decimal.mark=","),
-    digits = 3, align = "c", row.names = T, booktabs = T,
-    escape = F,
-    col.names = c("GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+    digits = 3, align = c("l", "c", "c", "c", "c", "c"), 
+    row.names = F, booktabs = T, escape = F,
+    col.names = c("", "GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
   )|>
   kable_styling(
     full_width = F, position = 'center', 
@@ -1389,12 +1439,62 @@ fit_anova|>
     footnote_as_chunk = F
   )|>
   column_spec(1, bold = T)|>
-  # column_spec(5, color = ifelse(fit_anova$`F value` == 0, "red", "black"))|>
-  # column_spec(6, ifelse(fit_anova$`Pr(>F)` == 0, 3, fit_anova$`Pr(>F)`))|>
-  # add_header_above(c(" " = 1, "ANOVA" = 5, "Intervalos de Confiança" = 2))|>
   kable_material()
 
 
+anova(mFit3)
+
+fit_anova3 <- broom::tidy(anova(mFit3))
+
+fit_anova3 <- fit_anova3|>
+  mutate(
+    sumsq = scales::number(
+      sumsq, accuracy = 0.0010,
+      big.mark = ".", decimal.mark = ","),
+    meansq = scales::number(
+      meansq, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    statistic = scales::number(
+      statistic, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    p.value = scales::number(
+      p.value, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","))
+
+fit_anova3[is.na(fit_anova3)] <- ""
+
+fit_anova3$term <- c("Colesterol total", "Glicose estabilizada",
+                     "Lipoproteína de alta densidade", 
+                     "Idade" , "Altura", 
+                     "Pressão sanguínea sistólica (1ª medida)", 
+                     "Pressão sanguínea diastólica (1ª medida)", 
+                     "Cintura",  "Quadril", "Resíduos")
+
+
+fit_anova3|>
+  kableExtra::kbl(
+    caption = "Análise de Variância (ANOVA).",
+    format.args=list(big.mark=".", decimal.mark=","),
+    digits = 3, align = c("l", "c", "c", "c", "c", "c"), 
+    row.names = F, booktabs = T, escape = F,
+    col.names = c("", "GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "repeat_header")
+  )|>
+  footnote(
+    number = c("GL: Graus de Liberdade"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F
+  )|>
+  column_spec(1, bold = T)|>
+  kable_material()
+
+
+
+### AnaRes - Análise de resíduos ----
+gglm::gglm(mFit1) 
 
 # FIM ----
 
