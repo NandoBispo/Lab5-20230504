@@ -99,6 +99,214 @@ Cox;
 ## Resultados
 
 
+### Análise Descritiva
+
+De modo a conhecer melhor o banco de dados analisado é importante realizar uma análise descritiva das variáveis que o compõem. Na Tabela 1 pode se ver as medidas de resumo de posição e de tendência central destas variáveis.
+
+
+
+```{r tab1:medidas_resumo}
+#| echo: false
+#| warning: false
+
+# Medidas Resumo ----
+summarytools::st_options(lang = "pt")
+
+dados1|>
+  rename(
+    "Volume" = volume, "Altura" = height, "Curcunferência" = girth)|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c",
+    style = "rmarkdown",
+    transpose = T
+  )|>
+    kbl(
+    caption = "Medidas Resumo dos dados",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", row.names = T, booktabs = T
+  )|>
+  kable_styling(
+    full_width = F, position = 'center', 
+    latex_options = c("striped", "HOLD_position", "scale_down", "repeat_header")
+  )|>
+  column_spec(1, bold = T
+              )|>
+  kable_material()
+
+```
+
+
+Para facilitar a compreenção das medidas apresentadas na Tabela 1, a Figura 1 mostra graficamente estas distribuições.
+
+
+```{r fig1:Histograma}
+#| echo: false
+#| warning: false
+#| fig-height: 3
+#| fig-width: 7
+
+# Histograma ----
+{
+## g1 volume ----
+g1 <- dados1|>
+  ggplot() +
+  aes(x = volume) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Volume",
+    x = "metros cúbicos",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g2 altura ----
+g2 <- dados1|>
+  ggplot() +
+  aes(x = height) +
+  geom_histogram(
+    aes(y = ..density..),
+    fill = "lightblue",
+    colour = "darkblue",
+    # binwidth = 2
+    bins = 10
+    ) +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Altura",
+    x = "metros",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g3 circunferência ----
+g3 <- dados1|>
+  ggplot() +
+  aes(x = girth) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Circunferência.",
+    x = "metros",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+(g1 + g2 + g3) +
+  plot_layout(nrow = 1) + 
+  plot_annotation(
+    title = "Figura 1: Histogramas das variáveis em análise.") &
+    # tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ", tag_sep = ".",
+    # tag_suffix = ":") 
+   theme(
+     plot.tag.position = c(0, 1),
+     plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4))
+}
+```
+
+
+Desta análise inicial, verifica-se que a distribuição das variáveis não apresenta fatores impeditivos da regressão linear a que nos propomos.
+
+## Análise de Dados Atípicos
+
+Pode-se realizar a análise de disperção dos dados por meio de gráficos do tipo BoxPlot, como se vê na Figura 2.
+
+```{r fig3:BoxPlot}
+#| echo: false
+#| warning: false
+#| fig-height: 3
+#| fig-width: 7
+
+# BoxPlot ----
+{
+## b1 volume ----
+b1 <- dados1|>
+  ggplot(aes(y = volume)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Volume",
+    x = "",
+    y = "Metros Cúbicos"
+  )+theme_minimal(base_size = 7.5)
+
+## b2 altura ----
+b2 <- dados1|>
+  ggplot(aes(y = height)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Altura",
+    x = "",
+    y = "Metros"
+  )+theme_minimal(base_size = 7.5)
+
+## b3 Circunferência ----
+b3 <- dados1|>
+  ggplot(aes(y = girth)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Circunferência",
+    x = "",
+    y = "Metros"
+  ) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      dig.mark = ".",
+      decimal.mark = ",")
+    )+theme_minimal(base_size = 7.5)
+      
+b1 + b2 + b3 +  
+  plot_layout(ncol = 3) + 
+  plot_annotation(
+    title = "Figura 2: BoxPlot das variáveis em análise.") &
+    # # theme = theme_minimal(plot.title = element_text(size = 10)),
+    # tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ", tag_sep = ".",
+    # tag_suffix = ":") &
+  theme(
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4))
+}
+
+```
+
+
+Pode-se verificar pela Figura 2 que há apenas um valor atipico (*outlayers*), correspodendo a um valor de Volume bem acima dos demais. Por se tratar de apenas um valor e considerando o reduzido número de observasções do banco de dados, decidiu-se por não realizar qualquer tratamento para essa observação.
+
 
 ### Ajuste do Modelo
 
@@ -116,7 +324,7 @@ dados1|>
     color = "#234B6E"
     )+
   labs(
-    title = "Figura 1: Modelo Ajustado entre Volume e Altura",
+    title = "Figura 3: Modelo Ajustado entre Volume e Altura",
     subtitle = "Diagrama de dispersão com equação da reta de regressão ajustada, \nCoeficiente de Correlação de Pearson, Coeficiente de Determinação, Coeficiente de \nDeterminação Ajustado, Reta de Regressão e Intervalo de Confiança",
     y = 'Volume (m³)',
     x = 'Altura (m)'
@@ -156,11 +364,11 @@ mFit1 <- lm(volume~height, data = dados1)
 ```
 
 
-Com base na Figura 1 é possível sugerir uma relação positiva entre as variáveis **Volume** e **Altura**, fato confirmado pelo Coeficiente de Correlação de Pearson (*R = `r scales::number(cor(dados1$volume, dados1$height), accuracy = 0.001, big.mark = ".", decimal.mark = ",")`*) que após o teste de hipótese para avaliar a significância da correlação estimada, demonstrou **possuir correlação não nula**. A reta de regressão ajustada segue a seguinte equação:
+Com base na Figura 3 é possível sugerir uma relação positiva entre as variáveis **Volume** e **Altura**, fato confirmado pelo Coeficiente de Correlação de Pearson (*R = `r scales::number(cor(dados1$volume, dados1$height), accuracy = 0.001, big.mark = ".", decimal.mark = ",")`*) que após o teste de hipótese para avaliar a significância da correlação estimada, demonstrou **possuir correlação não nula**. A reta de regressão ajustada segue a seguinte equação:
 
 $$ \hat{Y}_i = -2,5 + 0,14X_i$$
 
-A Tabela 1 traz os resultados do teste de hipóteses para correlação e o Intervalo de Confiança para o verdadeiro valor da correlação, podendo concluir, com base no p-valor menor que o nível de significância (**$\alpha = 5\%$**), que a hipótese nula ($H_0$) foi rejeitada, assumindo-se a hipótese alternativa ($H_1$) que afirma que $\rho \neq 0$.
+A Tabela 2 traz os resultados do teste de hipóteses para correlação e o Intervalo de Confiança para o verdadeiro valor da correlação, podendo concluir, com base no p-valor menor que o nível de significância (**$\alpha = 5\%$**), que a hipótese nula ($H_0$) foi rejeitada, assumindo-se a hipótese alternativa ($H_1$) que afirma que $\rho \neq 0$.
 
 ```{r tab1:teste_correlacao}
 #| echo: false
@@ -207,7 +415,7 @@ Após o ajuste do modelo existe a necessidade de se avaliar a significância do 
 
 $$H_0: \hat{\beta_1} = 0$$
 $$H_1: \hat{\beta_1} \neq 0.$$
-As Tabelas 4 e 5 trazem os principais resultados da tabela ANOVA e do Intervalo de Confiança para os parâmetros, possibilitando assim inferir sobre o modelo ajustado.
+As Tabelas 3 e 4 trazem os principais resultados da tabela ANOVA e do Intervalo de Confiança para os parâmetros, possibilitando assim inferir sobre o modelo ajustado.
 
 
 ```{r teste_diag_trans}
@@ -284,7 +492,7 @@ resultados|>
   kable_material()
 ```
 
-Com base na Tabela 2, avaliando o p-valor é possível afirmar que o modelo é significante rejeitando assim $H_0$ que tem como pressuposto $\hat{\beta_1} = 0$.
+Com base na Tabela 4, avaliando o p-valor é possível afirmar que o modelo é significante rejeitando assim $H_0$ que tem como pressuposto $\hat{\beta_1} = 0$.
 
 Através dos Intervalos de Confiança calculados (Tabela 3) é possível afirmar **com 95% de confiança que o verdadeiro valor de $\beta_0$ está entre `r glue::glue('({scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[1,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')` e que o verdadeiro valor de $\beta_1$ está entre `r glue::glue('({scales::number(confint(mFit1)[2,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[2,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')`**.
 
@@ -374,7 +582,7 @@ d1 <- mFit1_resid|>
  d1 + d2 + d3 +
    plot_layout(ncol = 2) +
    plot_annotation(
-   title = "Figura 2: Análise de resíduos do modelo ajustado",
+   title = "Figura 4: Análise de resíduos do modelo ajustado",
    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
    tag_sep = ".", tag_suffix = ":") &
    theme(
@@ -419,7 +627,7 @@ d1 <- mFit1_resid|>
 ```
 
 
-A Figura 2 Sub.Fig A apresenta um comportamento assimétrico dos resíduos, podendo ser constatado uma pequena variabilidade inicial e um aumento desta à medida que os valores ajustados aumentam, caracterizando uma heterocedasticidade. A Sub.Fig C, que trada da Homogeneidade de Variâncias (Locação-Escala) ressalta que há um problema na variabilidade dos dados, corroborando com a interpretação feita na análise da Sub.Fig. A, de que há uma mudança na variabilidade dos dados, caracterizando Heterocedasticidade dos dados.
+A Figura 4 Sub.Fig A apresenta um comportamento assimétrico dos resíduos, podendo ser constatado uma pequena variabilidade inicial e um aumento desta à medida que os valores ajustados aumentam, caracterizando uma heterocedasticidade. A Sub.Fig C, que trada da Homogeneidade de Variâncias (Locação-Escala) ressalta que há um problema na variabilidade dos dados, corroborando com a interpretação feita na análise da Sub.Fig. A, de que há uma mudança na variabilidade dos dados, caracterizando Heterocedasticidade dos dados.
 A Sub.Fig. B que traz o gráfico para avaliação da normalidade dos dados, mostra que apesar dos dados não estarem precisamente sobre a reta de referência, os mesmos estão contidos na região pertencente ao Intervalo de Confiança - IC, podendo assumir que há normalidade, contudo tal avaliação será confirmada após os Testes de Diagnóstico.
 
 
@@ -513,7 +721,7 @@ resultados|>
   kable_material()
 ```
 
-A Tabela 4 traz os testes de diagnósticos realizados para avaliar o modelo de regressão ajustado, conforme análise gráfica dos resíduos há a confirmação da heterocedasticidade de variância conforme o p-valor obtido pelo teste de Breush-Pagan (`r scales::number(t_bp$p.value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`) bem como a dependência entre as características confirmado pelo p-valor do teste de Durbin-Watson (<0,0001), em ambos os testes a hipótese nula ($H_0$) foi rejeitada com base p-valor, como tentativa de contornar a quebra dos pressupostos se faz necessária a transformação da variável resposta.
+A Tabela 5 traz os testes de diagnósticos realizados para avaliar o modelo de regressão ajustado, conforme análise gráfica dos resíduos há a confirmação da heterocedasticidade de variância conforme o p-valor obtido pelo teste de Breush-Pagan (`r scales::number(t_bp$p.value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`) bem como a dependência entre as características confirmado pelo p-valor do teste de Durbin-Watson (<0,0001), em ambos os testes a hipótese nula ($H_0$) foi rejeitada com base p-valor, como tentativa de contornar a quebra dos pressupostos se faz necessária a transformação da variável resposta.
 
 ### Transformações dos Dados
 
@@ -594,7 +802,7 @@ resultados |>
 
 ```
 
-A Tabela 5 traz a sumarização da característica em analise em sua forma natural juntamente com as formas transformadas para tentar identificar o comportamento destas transformações, podendo constatar um aumento na variabilidade dos dados, com base no valor do Coeficiente de Variação, com exceção da variável sob a transformação $Y^2$. Seguem as equações das retas ajustadas após a transformação.
+A Tabela 6 traz a sumarização da característica em analise em sua forma natural juntamente com as formas transformadas para tentar identificar o comportamento destas transformações, podendo constatar um aumento na variabilidade dos dados, com base no valor do Coeficiente de Variação, com exceção da variável sob a transformação $Y^2$. Seguem as equações das retas ajustadas após a transformação.
 
 $$ \sqrt{\hat{Y_i}} = -0,89 + 0,077X_i$$
 
@@ -603,7 +811,7 @@ $$ \log(\hat{Y_i}) = -4,4 + 0,18X_i$$
 $$ \hat{Y_i}^2 = -5,9 + 0,3X_i$$
 
 
-A Figura 3 traz os diagramas de dispersão com a reta ajustada para o modelo sem transformação e para cada transformação realizada, a fim de possibilitar a identificação das diferenças entre cada modelo.
+A Figura 5 traz os diagramas de dispersão com a reta ajustada para o modelo sem transformação e para cada transformação realizada, a fim de possibilitar a identificação das diferenças entre cada modelo.
 
 
 ```{r fig3:transform}
@@ -780,7 +988,7 @@ d4 <- t3|>
 d1 + d2 + d3 + d4 +
   plot_layout(ncol = 2) +
   plot_annotation(
-    title = "Figura 3: Modelo ajustado e suas transformações",
+    title = "Figura 5: Modelo ajustado e suas transformações",
     subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações \nda variável resposta.",
     tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
     tag_sep = ".", tag_suffix = ":") &
@@ -873,7 +1081,7 @@ d3 <- mFitT3_resid %>%
 d1 + d2 + d3 +
   plot_layout(ncol = 2) +
   plot_annotation(
-    title = "Figura 4: Gráficos dos Resíduos Estudentizados vs. Valores Ajustados \ndas características transformadas.",
+    title = "Figura 6: Gráficos dos Resíduos Estudentizados vs. Valores Ajustados \ndas características transformadas.",
     # subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações da variável resposta",
     tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
     tag_sep = ".", tag_suffix = ":") &
@@ -886,7 +1094,7 @@ d1 + d2 + d3 +
 ```
 
 
-A Figura 5 traz os gráficos comparativos dos resíduos estudentizados (*Jacknife*) versus os valores ajustados das variáveis transformadas, sendo possível constatar que houve uma aparente melhora na variabilidade nas Sub.Figs. A e B, contudo houve uma maior evidenciação do ponto atípico na Sub.Fig C, sendo este influente o suficiente para interferir a variabilidade total deste modelo, sendo descartado este modelo transformado pela quebra do pressuposto da homogeneidade de variâncias.
+A Figura 6 traz os gráficos comparativos dos resíduos estudentizados (*Jacknife*) versus os valores ajustados das variáveis transformadas, sendo possível constatar que houve uma aparente melhora na variabilidade nas Sub.Figs. A e B, contudo houve uma maior evidenciação do ponto atípico na Sub.Fig C, sendo este influente o suficiente para interferir a variabilidade total deste modelo, sendo descartado este modelo transformado pela quebra do pressuposto da homogeneidade de variâncias.
 Dentre os modelos sob a transformação $\sqrt{Y}$ e $log(Y)$, a figura que traz o comparativo dos resíduos sob a transformação $log(Y)$ (Sub.Fig. B) apresenta uma maior homogeneidade de variância, sendo o modelo mais adequado dentre os modelos transformados.
 
 Como forma de confirmar a avaliação feita sobre a analise gráfica, foi construída a Tabela 6 com os testes de diagnósticos dos resíduos do modelo sob a transformação $log(Y)$.
@@ -936,7 +1144,7 @@ resultados|>
 ```
 
 
-A Tabela 6 traz os testes de diagnóstico para a o modelo após a transformação da variável resposta, sendo possível constatar que após a transformação o novo modelo não rejeita a hipótese nula ($H_0$) para o teste de homogeneidade de variância, corroborando com a análise gráfica, contudo, os demais testes não foram bem sucedidos.
+A Tabela 7 traz os testes de diagnóstico para a o modelo após a transformação da variável resposta, sendo possível constatar que após a transformação o novo modelo não rejeita a hipótese nula ($H_0$) para o teste de homogeneidade de variância, corroborando com a análise gráfica, contudo, os demais testes não foram bem sucedidos.
 
 Tendo em vista não ser a tarefa mais simples a aplicação de diversas transformações e os devidos testes para avaliar o melhor possível modelo a ser utilizado, que minimize a variância residual, a opção mais adequada é a escolha do modelo baseado na família de transformações de Box-Cox, definida por:
 
@@ -945,7 +1153,7 @@ $$Y(\lambda) = \begin{cases} \dfrac{Y^{\lambda} - 1}{\lambda}, \text{ se } \lamb
 
 sendo $\lambda$ o parâmetro da transformação.
 
-Para tanto a Figura 5 foi construída com base na função de $\lambda$ para a escolha da transformação apropriada.
+Para tanto a Figura 7 foi construída com base na função de $\lambda$ para a escolha da transformação apropriada.
 
 
 ```{r fig5:box-cox}
@@ -956,7 +1164,7 @@ Para tanto a Figura 5 foi construída com base na função de $\lambda$ para a e
 
 par(mfrow = c(1, 1), mar=c(4,4,2,1), oma=c(1.5,1,1.5,1))
 bc <- MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
-mtext(side = 3, text = "Figura 5: Transformação Box-Cox", outer = T)
+mtext(side = 3, text = "Figura 7: Transformação Box-Cox", outer = T)
 par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1))
 
 lambda <- bc$x[which.max(bc$y)]
@@ -1048,7 +1256,7 @@ Numa primeira análise do conjunto de dados se constatou que as características
 Se constatou também que as observações das características **altura, peso, cintura** e **quadril** estão representadas em unidades do Sistema Imperial, diferentes das praticadas no Brasil, sendo necessária a conversão para o Sistema Internacional, a fim de facilitar a interoperabilidade para a nossa realidade cotidiana.
 Para tanto as características que possuem medidas originais em **polegadas (in), libras (lb), polegadas (in) e polegadas (in)** respectivamente, foram convertidas para **metro (m), quilograma (kg), centímetro (cm) e centímetro (cm)** respectivamente.
 
-Sendo parte primordial para qualquer estudo, a fase exploratória dos dados está representada inicialmente na Tabela 7 com a sumarização das características em análise.
+Sendo parte primordial para qualquer estudo, a fase exploratória dos dados está representada inicialmente na Tabela 8 com a sumarização das características em análise.
 
 
 ```{r tab1:MedRes}
@@ -1249,12 +1457,12 @@ fit_anova3_cna|>
 <!--   kable_material() -->
 <!-- ``` -->
 
-A análise da Tabela 8 permite avaliar que apenas para a razão colesterol total e colesterol bom e para a Hemoglobina glicada o peso do paciente está relacionado aos resultados obtidos de forma significativa. Para todos os demais a correlação não é evidente.
+A análise da Tabela 9 permite avaliar que apenas para a razão colesterol total e colesterol bom e para a Hemoglobina glicada o peso do paciente está relacionado aos resultados obtidos de forma significativa. Para todos os demais a correlação não é evidente.
 
 
 #### Realizando a RLM para a variável IMC
 
-Comummente nas avaliações na área de saúde o peso isoladamente é menos significativo que quando dividido pelo quadrado da altura, constituindo o que se convencionou de Índice de Massa Corpórea (IMC). Refazendo os calculos anteriores para essa nova variável temos o que se pode ver nas tabelas a seguir.
+Comummente nas avaliações na área de saúde o peso isoladamente é menos significativo que quando dividido pelo quadrado da altura, constituindo o que se convencionou de Índice de Massa Corpórea (IMC). Refazendo os calculos anteriores para essa nova variável temos o que se pode ver na tabela a seguir.
 
 
 
@@ -1341,7 +1549,7 @@ fit_anova4_sna|>
 ```
 
 
-A análise da Tabela 9 indica que o peso precisa ser avaliado em função da altura para desterminar a razão colesterol total e colesterol bom, uma vez que na ponderação do IMC esta condição deixa de estar significativamente correlacionada. Já para a Hemoglobina glicada o peso do paciente ou seu IMC estão relacionados aos resultados obtidos de forma significativa. Para todos os demais a correlação não é evidente.
+A análise da Tabela 10 indica que o peso precisa ser avaliado em função da altura para desterminar a razão colesterol total e colesterol bom, uma vez que na ponderação do IMC esta condição deixa de estar significativamente correlacionada. Já para a Hemoglobina glicada o peso do paciente ou seu IMC estão relacionados aos resultados obtidos de forma significativa. Para todos os demais a correlação não é evidente.
 
 
 ## Conclusões
