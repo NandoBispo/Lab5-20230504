@@ -482,15 +482,15 @@ t_bp <- lmtest::bptest(mFit1, studentize = F)
 # DW
 t_dw <- lmtest::dwtest(mFit1)
 
-resultados <- rbind(
+resultados <- round(rbind(
   t_sw$statistic,
   t_bp$statistic,
-  t_dw$statistic)
+  t_dw$statistic),4)
 
 aux <- rbind(
-  t_sw$p.value,
-  t_bp$p.value,
-  t_dw$p.value)
+  round(t_sw$p.value,4),
+  round(t_bp$p.value,4),
+  "<0,0001")
 
 resultados <- cbind(resultados, aux)
 
@@ -513,7 +513,7 @@ resultados|>
   kable_material()
 ```
 
-A Tabela 4 traz os testes de diagnósticos realizados para avaliar o modelo de regressão ajustado, conforme análise gráfica dos resíduos há a confirmação da heterocedasticidade de variância conforme o p-valor obtido pelo teste de Breush-Pagan (`r scales::number(t_bp$p.value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`) bem como a dependência entre as características confirmado pelo p-valor do teste de Durbin-Watson (`r scales::number(t_dw$p.value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`), em ambos os testes a hipótese nula ($H_0$) foi rejeitada com base p-valor, como tentativa de contornar a quebra dos pressupostos se faz necessária a transformação da variável resposta.
+A Tabela 4 traz os testes de diagnósticos realizados para avaliar o modelo de regressão ajustado, conforme análise gráfica dos resíduos há a confirmação da heterocedasticidade de variância conforme o p-valor obtido pelo teste de Breush-Pagan (`r scales::number(t_bp$p.value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`) bem como a dependência entre as características confirmado pelo p-valor do teste de Durbin-Watson (<0,0001), em ambos os testes a hipótese nula ($H_0$) foi rejeitada com base p-valor, como tentativa de contornar a quebra dos pressupostos se faz necessária a transformação da variável resposta.
 
 ### Transformações dos Dados
 
@@ -904,15 +904,15 @@ t_bp_T2 <- lmtest::bptest(mFitT2, studentize = F)
 
 t_dw_T2 <- lmtest::dwtest(mFitT2)
 
-resultados <- rbind(
+resultados <- round(rbind(
   t_sw_t2$statistic,
   t_bp_T2$statistic,
-  t_dw_T2$statistic)
+  t_dw_T2$statistic),4)
 
 aux <- rbind(
-  t_sw_t2$p.value,
-  t_bp_T2$p.value,
-  t_dw_T2$p.value)
+  round(t_sw_t2$p.value,4),
+  round(t_bp_T2$p.value,4),
+  "<0,0001")
 
 resultados <- cbind(resultados, aux)
 
@@ -1045,7 +1045,7 @@ Com base nestes dados se desenvolverá:
 
 Numa primeira análise do conjunto de dados se constatou que as características **Pressão sanguínea sistólica (2ª medida)** e **Pressão sanguínea diastólica (2ª medida)** possuem uma quantidade muito grande de dados ausentes, cerca de 65% de ausência de dados, ou seja, das 403 observações coletadas, 262 estão ausentes para estas características, diante desta grande falta de dados essas características serão descartadas.
 
-Se constatou também que as observações das características **altura, peso, cintura** e **quadril** estão representadas em unidades de medidas diferentes das praticadas no Brasil, sendo necessária a conversão das métricas estrangeiras para as métricas nacionais, a fim de facilitar a interoperabilidade para a nossa realidade cotidiana.
+Se constatou também que as observações das características **altura, peso, cintura** e **quadril** estão representadas em unidades do Sistema Imperial, diferentes das praticadas no Brasil, sendo necessária a conversão para o Sistema Internacional, a fim de facilitar a interoperabilidade para a nossa realidade cotidiana.
 Para tanto as características que possuem medidas originais em **polegadas (in), libras (lb), polegadas (in) e polegadas (in)** respectivamente, foram convertidas para **metro (m), quilograma (kg), centímetro (cm) e centímetro (cm)** respectivamente.
 
 Sendo parte primordial para qualquer estudo, a fase exploratória dos dados está representada inicialmente na Tabela 7 com a sumarização das características em análise.
@@ -1093,8 +1093,9 @@ dados3|>
   kable_material()
 ```
 
+### Regressão Linear Múltipla
 
-Com base na proposta da coleta de dados, a característica que apresenta melhor adequação para ser a variável resposta de um modelo de regressão é o **peso**, logo será feita a avaliação dessa característica com as demais a fim de se identificar possíveis correlações.
+Com base na proposta da coleta de dados, a característica que apresenta melhor adequação para ser a variável resposta de um modelo de regressão é o **peso**, pois intuitivamente é a que apresenta melhor correlação. Desta forma, será feita a avaliação dessa característica com as demais a fim de se identificar as possíveis correlações intuídas.
 
 
 ```{r ajuste_mod}
@@ -1152,14 +1153,26 @@ fit_anova3_cna$term <- c("Colesterol total", "Glicose estabilizada",
                      "Pressão sanguínea diastólica (1ª medida)", 
                      "Cintura",  "Quadril", "Resíduos")
 
+
+
+
+for (i in 1:12){
+  if (fit_anova3_cna[i,6]=="0,0000") {
+    fit_anova3_cna[i,6] = "<0,0001"
+  }  
+}
+
+
+
 # Criação da tabela
+
 fit_anova3_cna|>
   kableExtra::kbl(
     caption = "Análise de Variância (ANOVA).",
     format.args=list(big.mark=".", decimal.mark=","),
     digits = 3, align = c("l", "c", "c", "c", "c", "c"), 
     row.names = F, booktabs = T, escape = F,
-    col.names = c("", "GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+    col.names = c("", "$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
   )|>
   kable_styling(
     full_width = F, position = 'center', 
@@ -1175,7 +1188,98 @@ fit_anova3_cna|>
 ```
 
 
-```{r tab:model_sig_sem_nas}
+<!-- ```{r tab:model_sig_sem_nas} -->
+<!-- #| echo: false -->
+<!-- #| warning: false -->
+
+<!-- # Modelo incompleto -->
+<!-- fit_anova4_sna<- broom::tidy(anova(mFit4.0sna)) -->
+
+<!-- fit_anova4_sna<- fit_anova4_sna|> -->
+<!--   mutate( -->
+<!--     sumsq = scales::number( -->
+<!--       sumsq, accuracy = 0.0010, -->
+<!--       big.mark = ".", decimal.mark = ","), -->
+<!--     meansq = scales::number( -->
+<!--       meansq, accuracy = 0.0001, -->
+<!--       big.mark = ".", decimal.mark = ","), -->
+<!--     statistic = scales::number( -->
+<!--       statistic, accuracy = 0.0001, -->
+<!--       big.mark = ".", decimal.mark = ","), -->
+<!--     p.value = scales::number( -->
+<!--       p.value, accuracy = 0.0001, -->
+<!--       big.mark = ".", decimal.mark = ",")) -->
+
+<!-- fit_anova4_sna[is.na(fit_anova4_sna)] <- "" -->
+
+<!-- fit_anova4_sna$term <- c("Colesterol total", "Glicose estabilizada", -->
+<!--                      "Lipoproteína de alta densidade",  -->
+<!--                      "Razão colesterol total e colesterol bom",  -->
+<!--                      "Hemoglobina glicada", "Idade" , "Altura",  -->
+<!--                      "Pressão sanguínea sistólica (1ª medida)",  -->
+<!--                      "Pressão sanguínea diastólica (1ª medida)",  -->
+<!--                      "Cintura",  "Quadril", "Resíduos") -->
+
+
+
+<!-- for (i in 1:12){ -->
+<!--   if (fit_anova4_sna[i,6]=="0,0000") { -->
+<!--     fit_anova4_sna[i,6] = "<0,0001" -->
+<!--   }   -->
+<!-- } -->
+
+<!-- fit_anova4_sna|> -->
+<!--   kableExtra::kbl( -->
+<!--     caption = "Análise de Variância (ANOVA).", -->
+<!--     format.args=list(big.mark=".", decimal.mark=","), -->
+<!--     digits = 3, align = c("l", "c", "c", "c", "c", "c"),  -->
+<!--     row.names = F, booktabs = T, escape = F, -->
+<!--     col.names = c("", "$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor") -->
+<!--   )|> -->
+<!--   kable_styling( -->
+<!--     full_width = F, position = 'center',  -->
+<!--     latex_options = c("striped", "HOLD_position", "repeat_header", "scale_down") -->
+<!--   )|> -->
+<!--   footnote( -->
+<!--     number = c("GL: Graus de Liberdade"), -->
+<!--     number_title = "Legenda:", -->
+<!--     footnote_as_chunk = F -->
+<!--   )|> -->
+<!--   column_spec(1, bold = T)|> -->
+<!--   kable_material() -->
+<!-- ``` -->
+
+A análise da Tabela 8 permite avaliar que apenas para a razão colesterol total e colesterol bom e para a Hemoglobina glicada o peso do paciente está relacionado aos resultados obtidos de forma significativa. Para todos os demais a correlação não é evidente.
+
+
+#### Realizando a RLM para a variável IMC
+
+Comummente nas avaliações na área de saúde o peso isoladamente é menos significativo que quando dividido pelo quadrado da altura, constituindo o que se convencionou de Índice de Massa Corpórea (IMC). Refazendo os calculos anteriores para essa nova variável temos o que se pode ver nas tabelas a seguir.
+
+
+
+```{r ajuste_mod_IMC}
+#| echo: false
+#| warning: false
+
+
+### Ajuste do modelo ----
+
+# Com remoção de NAs
+dados4$IMC <- dados4$weight/(dados4$height^2)
+
+mFit4.0sna <- lm(IMC ~ chol + stab_glu + hdl + ratio + glyhb + age + bp_1s + bp_1d + waist + hip, data = dados4)
+
+mFit4.1sna <- lm(IMC ~  chol + stab_glu + hdl + age +  bp_1s + bp_1d + waist + hip, data = dados4)
+
+
+```
+
+
+
+
+
+```{r tab:model_sig_sem_nas_IMC}
 #| echo: false
 #| warning: false
 
@@ -1202,11 +1306,18 @@ fit_anova4_sna[is.na(fit_anova4_sna)] <- ""
 fit_anova4_sna$term <- c("Colesterol total", "Glicose estabilizada",
                      "Lipoproteína de alta densidade", 
                      "Razão colesterol total e colesterol bom", 
-                     "Hemoglobina glicada", "Idade" , "Altura", 
+                     "Hemoglobina glicada", "Idade" ,  
                      "Pressão sanguínea sistólica (1ª medida)", 
                      "Pressão sanguínea diastólica (1ª medida)", 
                      "Cintura",  "Quadril", "Resíduos")
 
+
+
+for (i in 1:11){
+  if (fit_anova4_sna[i,6]=="0,0000") {
+    fit_anova4_sna[i,6] = "<0,0001"
+  }  
+}
 
 fit_anova4_sna|>
   kableExtra::kbl(
@@ -1214,7 +1325,7 @@ fit_anova4_sna|>
     format.args=list(big.mark=".", decimal.mark=","),
     digits = 3, align = c("l", "c", "c", "c", "c", "c"), 
     row.names = F, booktabs = T, escape = F,
-    col.names = c("", "GL", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+    col.names = c("", "$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
   )|>
   kable_styling(
     full_width = F, position = 'center', 
@@ -1230,40 +1341,11 @@ fit_anova4_sna|>
 ```
 
 
-```{r}
-#| echo: false
-#| warning: false
+A análise da Tabela 9 indica que o peso precisa ser avaliado em função da altura para desterminar a razão colesterol total e colesterol bom, uma vez que na ponderação do IMC esta condição deixa de estar significativamente correlacionada. Já para a Hemoglobina glicada o peso do paciente ou seu IMC estão relacionados aos resultados obtidos de forma significativa. Para todos os demais a correlação não é evidente.
 
 
-```
+## Conclusões
 
-
-
-
-```{r}
-#| echo: false
-#| warning: false
-
-
-```
-
-
-```{r}
-#| echo: false
-#| warning: false
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
+Embora o banco de dados utilizado tenha diversos dados ausentes e use um sistema métrico diverso, o tratamento dos dados permitiu a avaliação da correlação entre as variáveis.
+Observou-se que o peso do paciente apenas tem relação significativa com sua razão de colesterol total e colesterol bom e suas medidas de Hemoglobina glicada, entretanto a ponderação do peso por meio do Índice de Massa Corpórea (IMC), deixa claro que apenas a Hemoglobina glicada tem relação com o peso quando se leva em consideração a altura do paciente.
+Como um trabalho futuro, pode-se pensar em uma análise envolvendo variáveis resposta menos intuitivas que o peso do paciente ou seu IMC, que tem potencial para revelar outras relações entre as condições clínicas do paciente.
