@@ -1301,6 +1301,583 @@ dados3|>
   kable_material()
 ```
 
+
+
+Para facilitar a compreenção das medidas apresentadas na Tabela 8, a Figura 8 mostra graficamente estas distribuições.
+
+
+```{r fig1:Histograma2}
+#| echo: false
+#| warning: false
+#| fig-height: 9
+#| fig-width: 7
+
+# Histograma ----
+
+## g1 Colesterol ----
+g1 <- dados3|>
+  ggplot() +
+  aes(x = chol) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Colesterol Total",
+    x = "µg/L",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g2 Glicose ----
+g2 <- dados3|>
+  ggplot() +
+  aes(x = stab_glu) +
+  geom_histogram(
+    aes(y = ..density..),
+    fill = "lightblue",
+    colour = "darkblue",
+    # binwidth = 2
+    bins = 10
+    ) +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Glicose Estabilizada",
+    x = "µg/L",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g3 hdl ----
+g3 <- dados3|>
+  ggplot() +
+  aes(x = hdl) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "HDL",
+    x = "µg/L",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g4 ratio ----
+g4 <- dados3|>
+  ggplot() +
+  aes(x = ratio) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Razão Col. Total/HDL",
+    x = "Razão",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g5 glyhb ----
+g5 <- dados3|>
+  ggplot() +
+  aes(x = glyhb) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Hemoglobina Glicada",
+    x = "µg/L",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+# ## g6 local ----
+# g6 <- dados3|>
+#   ggplot() +
+#   aes(x = location) +
+#   geom_histogram(
+#     aes(y = ..density..),
+#     fill = "lightblue",
+#     colour = "darkblue") +
+#   geom_density(
+#     alpha = 0.2,
+#     fill = "blue",
+#     colour = "blue") +
+#   scale_x_continuous(
+#     labels = scales::number_format(
+#       big.mark = ".",
+#       decimal.mark = ","
+#     )) +
+#   # scale_y_continuous(
+#   #   labels = scales::number_format(
+#   #     big.mark = ".",
+#   #     decimal.mark = ","
+#   #   )) +
+#   labs(
+#     title = "Município",
+#     x = "Município",
+#     y = "Densidade"
+#   )+theme_minimal(base_size = 7.5)
+# 
+## g7 idade ----
+g7 <- dados3|>
+  ggplot() +
+  aes(x = age) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Idade",
+    x = "Anos",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+# ## g8 sexo ----
+# g8 <- dados3|>
+#   ggplot() +
+#   aes(x = gender) +
+#   geom_histogram(
+#     aes(y = ..density..),
+#     fill = "lightblue",
+#     colour = "darkblue") +
+#   geom_density(
+#     alpha = 0.2,
+#     fill = "blue",
+#     colour = "blue") +
+#   # scale_x_continuous(
+#   #   labels = scales::number_format(
+#   #     big.mark = ".",
+#   #     decimal.mark = ","
+#   #   )) +
+#   scale_y_continuous(
+#     labels = scales::number_format(
+#       big.mark = ".",
+#       decimal.mark = ","
+#     )) +
+#   labs(
+#     title = "Sexo",
+#     x = "Gênero",
+#     y = "Densidade"
+#   )+theme_minimal(base_size = 7.5)
+
+## g9 height ----
+g9 <- dados3|>
+  ggplot() +
+  aes(x = height) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Altura",
+    x = "Centímetros",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g10 weight ----
+g10 <- dados3|>
+  ggplot() +
+  aes(x = weight) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Peso",
+    x = "Quilogramas",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g11 bp_1s ----
+g11 <- dados3|>
+  ggplot() +
+  aes(x = bp_1s) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "P. Sistólica(1ª)",
+    x = "mmHg",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g12 bp_1d ----
+g12 <- dados3|>
+  ggplot() +
+  aes(x = bp_1d) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "P. Diastólica(1ª)",
+    x = "mmHg",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g13 waist ----
+g13 <- dados3|>
+  ggplot() +
+  aes(x = waist) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Cintura",
+    x = "Centímetros",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+## g14 hip ----
+g14 <- dados3|>
+  ggplot() +
+  aes(x = hip) +
+  geom_histogram(
+    aes(y = ..density..),
+    bins = 10,
+    fill = "lightblue",
+    colour = "darkblue") +
+  geom_density(
+    alpha = 0.2,
+    fill = "blue",
+    colour = "blue") +
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    )) +
+  labs(
+    title = "Quadril",
+    x = "Centímetros",
+    y = "Densidade"
+  )+theme_minimal(base_size = 7.5)
+
+
+(g1 + g2 + g3 + g4 + g5 + g7 + g9 + g10 + g11 + g12 + g13 + g14) +
+  plot_layout(nrow = 3) + 
+  plot_annotation(
+    title = "Figura 8: Histogramas das variáveis em análise.") &
+    # tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ", tag_sep = ".",
+    # tag_suffix = ":") 
+   theme(
+     plot.tag.position = c(0, 1),
+     plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4))
+
+```
+
+
+Desta análise inicial, verifica-se que a distribuição das variáveis não apresenta fatores impeditivos da regressão linear a que nos propomos.
+
+## Análise de Dados Atípicos
+
+Pode-se realizar a análise de disperção dos dados por meio de gráficos do tipo BoxPlot, como se vê na Figura 9.
+
+```{r fig3:BoxPlot2}
+#| echo: false
+#| warning: false
+#| fig-height: 9
+#| fig-width: 7
+
+# BoxPlot ----
+{
+## b1 volume ----
+b1 <- dados3|>
+  ggplot(aes(y = chol)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Colesterol Total",
+    x = "",
+    y = "µg/L"
+  )+theme_minimal(base_size = 7.5)
+
+## b2 glicose ----
+b2 <- dados3|>
+  ggplot(aes(y = stab_glu)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Glicose Estabilizada",
+    x = "",
+    y = "µg/L"
+  )+theme_minimal(base_size = 7.5)
+
+## b3 hdl ----
+b3 <- dados3|>
+  ggplot(aes(y = hdl)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "HDL",
+    x = "",
+    y = "µg/L"
+  )+theme_minimal(base_size = 7.5)
+
+## b4 ratio ----
+b4 <- dados3|>
+  ggplot(aes(y = ratio)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Razão Col. Total?HDL",
+    x = "",
+    y = "Razão"
+  )+theme_minimal(base_size = 7.5)
+
+## b5 glyhb ----
+b5 <- dados3|>
+  ggplot(aes(y = glyhb)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Hemoglobina Gliacada",
+    x = "",
+    y = "µg/L"
+  )+theme_minimal(base_size = 7.5)
+
+## b6 idade ----
+b6 <- dados3|>
+  ggplot(aes(y = age)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Idade",
+    x = "",
+    y = "Anos"
+  )+theme_minimal(base_size = 7.5)
+     
+## b7 altura ----
+b7 <- dados3|>
+  ggplot(aes(y = height)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Altura",
+    x = "",
+    y = "Centímetros"
+  )+theme_minimal(base_size = 7.5)
+
+## b8 Peso ----
+b8 <- dados3|>
+  ggplot(aes(y = weight)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Peso",
+    x = "",
+    y = "Quilogramas"
+  )+theme_minimal(base_size = 7.5)
+
+## b9 bo_1s ----
+b9 <- dados3|>
+  ggplot(aes(y = bp_1s)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "P. Sistólica (1ª)",
+    x = "",
+    y = "mmHg"
+  )+theme_minimal(base_size = 7.5)
+
+## b10 bp_1d ----
+b10 <- dados3|>
+  ggplot(aes(y = bp_1d)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "P. Diastólica (1ª)",
+    x = "",
+    y = "mmHg"
+  )+theme_minimal(base_size = 7.5)
+
+## b11 waist ----
+b11 <- dados3|>
+  ggplot(aes(y = waist)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Cintura",
+    x = "",
+    y = "Centímetros"
+  )+theme_minimal(base_size = 7.5)
+
+## b12 hip ----
+b12 <- dados3|>
+  ggplot(aes(y = hip)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = "Quadril",
+    x = "",
+    y = "Centímetros"
+  )+theme_minimal(base_size = 7.5)
+
+b1 + b2 + b3 + b4 + b5 + b6 + b7 + b8 + b9 + b10 + b11 + b12 +  
+  plot_layout(ncol = 3) + 
+  plot_annotation(
+    title = "Figura 9: BoxPlot das variáveis em análise.") &
+    # # theme = theme_minimal(plot.title = element_text(size = 10)),
+    # tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ", tag_sep = ".",
+    # tag_suffix = ":") &
+  theme(
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4))
+}
+
+```
+
+
+Pode-se verificar pela Figura 9 que há diversos valores atipicos (*outlayers*), entretanto sem conhecimento especializado da fisiologia é temerário prescindir destas observações. Assim, decidiu-se por não realizar qualquer tratamento para essa observação, abrindo entretanto a possibilidade futura após o parecer de um especialista.
+
+
+
+
 ### Regressão Linear Múltipla
 
 Com base na proposta da coleta de dados, a característica que apresenta melhor adequação para ser a variável resposta de um modelo de regressão é o **peso**, pois intuitivamente é a que apresenta melhor correlação. Desta forma, será feita a avaliação dessa característica com as demais a fim de se identificar as possíveis correlações intuídas.
