@@ -1969,7 +1969,7 @@ fit_anova3_cna|>
     footnote_as_chunk = F
   )|>
   column_spec(1, bold = T)|>
-  column_spec(6, bold = T, color = ifelse(fit_anova3_cna$p.value < 0.05, "green", "red"))|>
+  # column_spec(6, bold = T, color = ifelse(fit_anova3_cna$p.value < 0.05, "green", "red"))|>
   kable_material()
 ```
 
@@ -2096,8 +2096,6 @@ fit_anova4_sna$term <- c("Colesterol total", "Glicose estabilizada",
                      "Pressão sanguínea sistólica (1ª medida)", 
                      "Pressão sanguínea diastólica (1ª medida)", 
                      "Cintura",  "Quadril", "Resíduos")
-
-
 
 for (i in 1:11){
   if (fit_anova4_sna[i,6]=="0,0000") {
