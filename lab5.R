@@ -14,6 +14,8 @@ pacman::p_load(tidyverse,  janitor, stargazer,  sjmisc, summarytools,
 # - skimr: Pacote que gera um mini relatório dos dados e identifica dados faltantes como comando "skimr::skim()".
 # - qqplotr: Pacote que gera gráficos qq
 # performance::check_model gera gráficos de análise de residuos para MRLS
+# gglm::gglm - Assim como performance gera gráficos de resíduos. Apresentando no avento IME.
+
 
 # VERSIONAMENTO ----
 # https://curso-r.githud.io/zen-do-r/git-githud.html
@@ -1121,11 +1123,12 @@ dados3 <- dados2|>
 
 dplyr::glimpse(dados3)
 
-
 dados4 <- dados3|>
-  select(-gender, -location)
+  select(-gender, -location)|>
+  stats::na.omit()
 
-dados4 <- dados4|>stats::na.omit()
+
+
 ## Análises ----
 
 ### Dados Faltantes ----
@@ -1410,7 +1413,7 @@ fit_anova2 <- fit_anova2|>
       p.value, accuracy = 0.0001,
       big.mark = ".", decimal.mark = ","))
 
-fit_anova2[is.na(fit_anova2)] <- ""
+fit_anova2[is.na(fit_anova2)] <- 0
 
 fit_anova2$term <- c("Colesterol total", "Glicose estabilizada",
                      "Lipoproteína de alta densidade", 
@@ -1439,6 +1442,7 @@ fit_anova2|>
     footnote_as_chunk = F
   )|>
   column_spec(1, bold = T)|>
+  column_spec(6, bold = T, color = ifelse(as.numeric(fit_anova2$p.value) < 0.05, "green", "red"))|>
   kable_material()
 
 

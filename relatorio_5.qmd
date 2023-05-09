@@ -1171,6 +1171,7 @@ fit_anova3_cna|>
     footnote_as_chunk = F
   )|>
   column_spec(1, bold = T)|>
+  column_spec(6, bold = T, color = ifelse(fit_anova3_cna$p.value < 0.05, "green", "red"))|>
   kable_material()
 ```
 
